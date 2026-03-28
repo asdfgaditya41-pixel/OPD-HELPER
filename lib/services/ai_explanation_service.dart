@@ -5,10 +5,28 @@ import '../viewmodels/hospital_viewmodel.dart';
 import 'dart:math';
 
 class AiExplanationService {
-  
+  // Cache: key = "question|topHospitalId", value = (response, cachedAt)
+  // TTL: 60 seconds — avoids redundant Firestore room queries on repeated taps
+  static final Map<String, (String, DateTime)> _responseCache = {};
+  static const int _cacheTtlSeconds = 60;
+
   static Future<String> generateResponse(
       String question, HospitalViewModel vm) async {
-    
+
+    final topEmergencyHospitals = vm.getTopEmergencyHospitals();
+    final topHospital = topEmergencyHospitals.isNotEmpty ? topEmergencyHospitals.first : null;
+    final cacheKey = '$question|${topHospital?.id ?? "none"}';
+
+    // Return cached response if still fresh
+    final cached = _responseCache[cacheKey];
+    if (cached != null) {
+      final age = DateTime.now().difference(cached.$2).inSeconds;
+      if (age < _cacheTtlSeconds) {
+        await Future.delayed(const Duration(milliseconds: 300)); // brief UX delay
+        return cached.$1;
+      }
+    }
+
     // Simulate API delay for realistic AI feel
     await Future.delayed(Duration(milliseconds: 1000 + Random().nextInt(800)));
 
@@ -16,9 +34,6 @@ class AiExplanationService {
     if (hospitals.isEmpty) {
       return "I couldn't find any hospitals under your current filter settings. Try expanding your search or turning on GPS!";
     }
-
-    final topEmergencyHospitals = vm.getTopEmergencyHospitals();
-    final topHospital = topEmergencyHospitals.isNotEmpty ? topEmergencyHospitals.first : null;
 
     if (question == "Why this hospital?") {
       if (topHospital == null) {
@@ -113,6 +128,11 @@ class AiExplanationService {
     }
 
     // Default Fallback
-    return "I analyze hundreds of data points every few seconds including real-time hospital queues, available beds, and geometric distance to instantly calculate where you will receive care the fastest.";
+    final fallback = "I analyze hundreds of data points every few seconds including real-time hospital queues, available beds, and geometric distance to instantly calculate where you will receive care the fastest.";
+    _responseCache[cacheKey] = (fallback, DateTime.now());
+    return fallback;
   }
+
+  /// Evict all cached responses (call when hospital data refreshes significantly)
+  static void clearCache() => _responseCache.clear();
 }

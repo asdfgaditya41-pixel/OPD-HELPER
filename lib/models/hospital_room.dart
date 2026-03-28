@@ -4,13 +4,23 @@ class HospitalBed {
   final String id;
   final String status; // 'available' or 'occupied'
   final DateTime? lastUpdated;
+  final String? source; // "iot" or "manual"
+  final String? deviceId;
 
-  HospitalBed({required this.id, required this.status, this.lastUpdated});
+  HospitalBed({
+    required this.id,
+    required this.status,
+    this.lastUpdated,
+    this.source,
+    this.deviceId,
+  });
 
   factory HospitalBed.fromMap(String id, Map<String, dynamic> data) {
     return HospitalBed(
       id: id,
       status: data['status'] ?? 'available',
+      source: data['source'],
+      deviceId: data['device_id'],
       lastUpdated: data['last_updated'] != null
           ? (data['last_updated'] as Timestamp).toDate()
           : null,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/bed_management_viewmodel.dart';
-
+import '../services/iot_simulator_service.dart';
 
 class BedManagementScreen extends StatefulWidget {
   final String hospitalId;
@@ -12,6 +12,9 @@ class BedManagementScreen extends StatefulWidget {
 }
 
 class _BedManagementScreenState extends State<BedManagementScreen> {
+  final IoTSimulatorService _iotSim = IoTSimulatorService();
+  bool _simRunning = false;
+
   @override
   void initState() {
     super.initState();
@@ -22,6 +25,12 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
   }
 
   @override
+  void dispose() {
+    _iotSim.stopAll();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -29,6 +38,38 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          setState(() {
+            if (_simRunning) {
+              _iotSim.stopAll();
+              _simRunning = false;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('🔴 IoT Simulator stopped.'),
+                  backgroundColor: Color(0xFF263238),
+                ),
+              );
+            } else {
+              _iotSim.startBedSimulation(widget.hospitalId);
+              _simRunning = true;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('🟢 IoT Simulator running — beds flipping every 15s!'),
+                  backgroundColor: Color(0xFF00796B),
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
+          });
+        },
+        backgroundColor: _simRunning ? Colors.redAccent : const Color(0xFF00BFA5),
+        icon: Icon(_simRunning ? Icons.stop_rounded : Icons.sensors_rounded),
+        label: Text(
+          _simRunning ? 'Stop IoT Sim' : 'Run IoT Sim',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
       body: Container(
@@ -168,11 +209,11 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
                                   final bedData = bedsList[index];
                                   final bedId = bedData.key;
                                   final bed = bedData.value;
-                                  final isAvailable = bed.status == 'available';
+                                final isAvailable = bed.status == 'available';
+                                  final isIot = bed.source == 'iot';
 
                                   return InkWell(
                                     onTap: () {
-                                      // Toggle State instantly
                                       vm.toggleBed(widget.hospitalId, room.id, bedId, bed.status);
                                     },
                                     borderRadius: BorderRadius.circular(12),
@@ -188,23 +229,40 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
                                               : Colors.redAccent.withOpacity(0.4),
                                         ),
                                       ),
-                                      child: Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                      child: Stack(
                                         children: [
-                                          Icon(
-                                            isAvailable ? Icons.check_circle_rounded : Icons.person_rounded,
-                                            color: isAvailable ? const Color(0xFF4CAF50) : Colors.redAccent,
-                                            size: 18,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            bedId.toUpperCase(),
-                                            style: TextStyle(
-                                              color: isAvailable ? const Color(0xFF4CAF50) : Colors.redAccent,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
+                                          Center(
+                                            child: Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  isAvailable ? Icons.check_circle_rounded : Icons.person_rounded,
+                                                  color: isAvailable ? const Color(0xFF4CAF50) : Colors.redAccent,
+                                                  size: 18,
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Text(
+                                                  bedId.toUpperCase(),
+                                                  style: TextStyle(
+                                                    color: isAvailable ? const Color(0xFF4CAF50) : Colors.redAccent,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 14,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
+                                          // IoT source badge
+                                          if (isIot)
+                                            Positioned(
+                                              top: 4,
+                                              right: 6,
+                                              child: Icon(
+                                                Icons.sensors_rounded,
+                                                size: 12,
+                                                color: Colors.white.withOpacity(0.5),
+                                              ),
+                                            ),
                                         ],
                                       ),
                                     ),

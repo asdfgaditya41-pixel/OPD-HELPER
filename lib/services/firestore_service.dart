@@ -248,6 +248,7 @@ class FirestoreService {
 
     batch.update(roomRef, {
       'beds.$bedId.status': newStatus,
+      'beds.$bedId.source': 'manual',
       'beds.$bedId.last_updated': FieldValue.serverTimestamp(),
     });
 
@@ -321,6 +322,9 @@ class FirestoreService {
     DocumentSnapshot? targetRoomDoc;
     String? targetBedId;
     
+    // IoT weighting logic
+    int bestScore = -1;
+    
     for (int attempt = 0; attempt < 2; attempt++) {
       for (var doc in roomsSnap.docs) {
         final data = doc.data() as Map<String, dynamic>?;
@@ -334,25 +338,35 @@ class FirestoreService {
         for (var entry in bedsMap.entries) {
           final bedData = entry.value as Map<String, dynamic>;
           final status = bedData['status'];
+          final source = bedData['source'] as String?;
           final lastUpdated = bedData['last_updated'] as Timestamp?;
           
           if (status == 'available') {
+            int currentScore = 0;
+            
             if (lastUpdated != null) {
               final diff = DateTime.now().difference(lastUpdated.toDate());
               if (diff.inMinutes <= 30) {
-                targetRoomDoc = doc;
-                targetBedId = entry.key;
-                break;
+                currentScore += 5; // Fresh data is good
+                if (source == 'iot') {
+                  currentScore += 10; // IoT data is highly trusted
+                }
+              } else {
+                if (source == 'iot') {
+                  currentScore -= 5; // Offline IoT data is punished
+                }
               }
             } else {
-              // Legacy/un-updated bed -> allow but note to update
+              currentScore += 1; // Legacy
+            }
+            
+            if (currentScore > bestScore) {
+              bestScore = currentScore;
               targetRoomDoc = doc;
               targetBedId = entry.key;
-              break;
             }
           }
         }
-        if (targetRoomDoc != null) break;
       }
       
       if (targetRoomDoc != null) break;
