@@ -19,6 +19,7 @@ class Hospital {
   final String contactNumber;
   final DateTime? lastUpdated;
   final int noBedsReports;
+  final String type;
 
   Hospital({
     required this.id,
@@ -39,6 +40,7 @@ class Hospital {
     required this.contactNumber,
     this.lastUpdated,
     this.noBedsReports = 0,
+    this.type = 'private',
   });
 
   factory Hospital.fromFirestore(Map<String, dynamic> data, String id) {
@@ -79,6 +81,11 @@ class Hospital {
               ? (bedsMap['last_updated'] as Timestamp).toDate()
               : null),
       noBedsReports: data['no_beds_reports'] ?? 0,
+      type: data['type']?.toString().toLowerCase() ?? 
+          ((data['name']?.toString().toLowerCase().contains('apollo') == true ||
+            data['name']?.toString().toLowerCase().contains('safdurjang') == true ||
+            data['name']?.toString().toLowerCase().contains('safdarjung') == true) 
+              ? 'private' : 'government'),
       waitTime:
           data['wait_time'] ??
           (data['doctors'] == 0

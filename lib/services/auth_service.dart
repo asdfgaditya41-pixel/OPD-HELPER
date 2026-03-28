@@ -6,15 +6,7 @@ import '../models/app_user.dart';
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn.instance;
-  bool _isGoogleInitialized = false;
-
-  Future<void> _ensureGoogleInitialized() async {
-    if (!_isGoogleInitialized) {
-      await _googleSignIn.initialize();
-      _isGoogleInitialized = true;
-    }
-  }
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
@@ -22,16 +14,19 @@ class AuthService {
 
   Future<UserCredential?> signInWithGoogle() async {
     try {
-      await _ensureGoogleInitialized();
-
       // 1. Trigger the Google authentication flow
-      final GoogleSignInAccount googleUser = await _googleSignIn.authenticate();
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+      if (googleUser == null) {
+        return null; // User cancelled
+      }
 
       // 3. Obtain the auth details from the request
-      final GoogleSignInAuthentication googleAuth = googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
 
       // 4. Create a new credential for Firebase
       final OAuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
@@ -73,7 +68,6 @@ class AuthService {
 
   Future<void> signOut() async {
     try {
-      await _ensureGoogleInitialized();
       await _googleSignIn.signOut();
     } catch (_) {}
     await _auth.signOut();

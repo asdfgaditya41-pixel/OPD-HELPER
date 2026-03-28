@@ -15,6 +15,20 @@ class HospitalViewModel extends ChangeNotifier {
   List<Hospital> _allHospitals = [];    // raw: all from Firestore
   bool isLoading = true;
   static const double _radiusKm = 50.0;
+  
+  String selectedTypeFilter = 'all';
+
+  List<Hospital> get filteredHospitals {
+    if (selectedTypeFilter == 'all') return hospitals;
+    return hospitals.where((h) => h.type.toLowerCase() == selectedTypeFilter).toList();
+  }
+
+  void setHospitalTypeFilter(String filter) {
+    if (selectedTypeFilter != filter) {
+      selectedTypeFilter = filter;
+      notifyListeners();
+    }
+  }
 
   double? userLat;
   double? userLng;

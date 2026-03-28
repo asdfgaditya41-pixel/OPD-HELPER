@@ -94,6 +94,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
             final waits = data.waitTimes;
             final maxWait = waits.isNotEmpty ? waits.reduce((a, b) => a > b ? a : b) : 0;
+            final queues = data.queueSizes;
+            final maxQueue = queues.isNotEmpty ? queues.reduce((a, b) => a > b ? a : b) : 0;
 
             return SafeArea(
               child: SingleChildScrollView(
@@ -144,24 +146,80 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             child: _infoCard(
                               icon: Icons.schedule_rounded,
                               color: const Color(0xFFFFB74D),
-                              title: 'Peak Hours',
+                              title: 'Peak Hrs',
                               value: data.peakHours.isEmpty
                                   ? 'N/A'
                                   : data.peakHours,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: _infoCard(
                               icon: Icons.people_alt_rounded,
                               color: const Color(0xFF81C784),
-                              title: 'Daily Patients',
+                              title: 'Patients',
                               value: data.dailyPatients > 0
                                   ? data.dailyPatients.toString()
                                   : 'N/A',
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _infoCard(
+                              icon: Icons.timer_rounded,
+                              color: const Color(0xFFE57373),
+                              title: 'Avg Wait',
+                              value: data.averageWaitTime > 0
+                                  ? '${data.averageWaitTime}m'
+                                  : '0m',
+                            ),
+                          ),
                         ],
+                      ),
+                      const SizedBox(height: 24),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF00E5CC).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: const Color(0xFF00E5CC).withOpacity(0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.auto_awesome_rounded,
+                              color: Color(0xFF00E5CC),
+                              size: 28,
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'AI Insights',
+                                    style: TextStyle(
+                                      color: Color(0xFF00E5CC),
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    vm.dynamicInsight,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 24),
                       const Text(
@@ -281,6 +339,118 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                                 ),
                               ),
                       ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        'Queue Trend',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        height: 220,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF122A34),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.08),
+                          ),
+                        ),
+                        child: queues.isEmpty
+                            ? Center(
+                                child: Text(
+                                  'No queue data.',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.6),
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              )
+                            : BarChart(
+                                BarChartData(
+                                  maxY: (maxQueue * 1.2).clamp(10, double.infinity).toDouble(),
+                                  gridData: FlGridData(
+                                    show: true,
+                                    drawVerticalLine: false,
+                                    horizontalInterval: maxQueue > 0 ? (maxQueue / 3).clamp(5, double.infinity).toDouble() : 5,
+                                    getDrawingHorizontalLine: (value) {
+                                      return FlLine(
+                                        color: Colors.white.withOpacity(0.06),
+                                        strokeWidth: 1,
+                                      );
+                                    },
+                                  ),
+                                  titlesData: FlTitlesData(
+                                    leftTitles: AxisTitles(
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        reservedSize: 36,
+                                        getTitlesWidget: (value, meta) {
+                                          return Text(
+                                            value.toInt().toString(),
+                                            style: TextStyle(
+                                              color: Colors.white.withOpacity(0.5),
+                                              fontSize: 10,
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    bottomTitles: AxisTitles(
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        getTitlesWidget: (value, meta) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(top: 8.0),
+                                            child: Text(
+                                              'T${value.toInt() + 1}',
+                                              style: TextStyle(
+                                                color: Colors.white.withOpacity(0.5),
+                                                fontSize: 10,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    rightTitles: const AxisTitles(
+                                      sideTitles: SideTitles(showTitles: false),
+                                    ),
+                                    topTitles: const AxisTitles(
+                                      sideTitles: SideTitles(showTitles: false),
+                                    ),
+                                  ),
+                                  borderData: FlBorderData(
+                                    show: true,
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.1),
+                                    ),
+                                  ),
+                                  barGroups: queues.asMap().entries.map((e) {
+                                    return BarChartGroupData(
+                                      x: e.key,
+                                      barRods: [
+                                        BarChartRodData(
+                                          toY: e.value.toDouble(),
+                                          color: const Color(0xFF64B5F6),
+                                          width: 16,
+                                          borderRadius: const BorderRadius.only(
+                                            topLeft: Radius.circular(4),
+                                            topRight: Radius.circular(4),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                      ),
                     ],
                   ),
                 ),
@@ -299,7 +469,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     required String value,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: const Color(0xFF122A34),
         borderRadius: BorderRadius.circular(20),
@@ -317,25 +487,27 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             child: Icon(
               icon,
               color: color,
-              size: 22,
+              size: 20,
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           Text(
             value,
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 18,
+              fontSize: 16,
               fontWeight: FontWeight.w800,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Text(
             title,
             style: TextStyle(
               color: Colors.white.withOpacity(0.6),
-              fontSize: 12,
+              fontSize: 11,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

@@ -5,6 +5,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
+import '../models/hospital_room.dart';
+import '../services/firestore_service.dart';
 import 'components/auth_options_bottom_sheet.dart';
 import 'booking_screen.dart';
 
@@ -474,6 +476,114 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             ],
           ),
           const SizedBox(height: 16),
+          StreamBuilder<List<HospitalRoom>>(
+            stream: FirestoreService().watchHospitalRooms(h.id),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData || snapshot.data!.isEmpty) return const SizedBox.shrink();
+              
+              final rooms = snapshot.data!;
+              int icu = 0;
+              int gen = 0;
+              
+              for (var r in rooms) {
+                int count = r.beds.values.where((b) => b.status == 'available').length;
+                if (r.type == 'ICU') icu += count;
+                else gen += count;
+              }
+
+              if (icu == 0 && gen == 0) return const SizedBox.shrink();
+
+              // Build Categorized Room Lists
+              Map<String, List<HospitalRoom>> categorizedRooms = {};
+              for (var r in rooms) {
+                int count = r.beds.values.where((b) => b.status == 'available').length;
+                if (count > 0) {
+                  categorizedRooms.putIfAbsent(r.type, () => []).add(r);
+                }
+              }
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        if (icu > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            margin: const EdgeInsets.only(right: 8),
+                            decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.redAccent.withOpacity(0.3))),
+                            child: Text("$icu ICU Available", style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                          ),
+                        if (gen > 0)
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(color: const Color(0xFF00BFA5).withOpacity(0.2), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFF00BFA5).withOpacity(0.3))),
+                            child: Text("$gen General Available", style: const TextStyle(color: Color(0xFF00BFA5), fontSize: 12, fontWeight: FontWeight.bold)),
+                          ),
+                      ],
+                    ),
+                    if (categorizedRooms.isNotEmpty) const SizedBox(height: 16),
+                    ...categorizedRooms.entries.map((entry) {
+                      String category = entry.key;
+                      List<HospitalRoom> catRooms = entry.value;
+                      bool showMore = catRooms.length > 3;
+                      int extra = catRooms.length - 3;
+                      List<HospitalRoom> displayRooms = catRooms.take(3).toList();
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              category,
+                              style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 6),
+                            ...displayRooms.map((r) {
+                              int availableBeds = r.beds.values.where((b) => b.status == 'available').length;
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 4),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.meeting_room_rounded, color: Colors.white30, size: 14),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Room ${r.roomNumber}",
+                                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      availableBeds == 1 ? "1 Bed" : "$availableBeds Beds",
+                                      style: TextStyle(
+                                        color: category == 'ICU' ? Colors.redAccent : const Color(0xFF00BFA5),
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }),
+                            if (showMore)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 2),
+                                child: Text(
+                                  "+ $extra more $category room${extra > 1 ? 's' : ''}",
+                                  style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 12, fontStyle: FontStyle.italic),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              );
+            },
+          ),
           Row(
             children: [
               const Icon(Icons.update_rounded, color: Colors.white54, size: 14),

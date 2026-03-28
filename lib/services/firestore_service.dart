@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/hospital.dart';
+import '../models/hospital_room.dart';
 import '../models/inventory_item.dart';
+import '../models/appointment.dart';
 
 class FirestoreService {
   // Singleton — one instance across the app, no repeated instantiation cost
@@ -224,6 +226,187 @@ class FirestoreService {
       }
       return Hospital.fromFirestore(data, snapshot.id);
     });
+  }
+
+  Stream<List<HospitalRoom>> watchHospitalRooms(String hospitalId) {
+    return _db
+        .collection('hospitals')
+        .doc(hospitalId)
+        .collection('rooms')
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => HospitalRoom.fromFirestore(doc)).toList();
+    });
+  }
+
+  Future<void> toggleBedStatus(String hospitalId, String roomId, String bedId, String currentStatus) async {
+    final batch = _db.batch();
+    final newStatus = currentStatus == 'available' ? 'occupied' : 'available';
+
+    final roomRef = _db.collection('hospitals').doc(hospitalId).collection('rooms').doc(roomId);
+    final hospitalRef = _db.collection('hospitals').doc(hospitalId);
+
+    batch.update(roomRef, {
+      'beds.$bedId.status': newStatus,
+      'beds.$bedId.last_updated': FieldValue.serverTimestamp(),
+    });
+
+    int diff = newStatus == 'available' ? 1 : -1;
+    batch.update(hospitalRef, {
+      'beds_available': FieldValue.increment(diff),
+      'beds.available': FieldValue.increment(diff),
+      'last_updated': FieldValue.serverTimestamp(),
+    });
+
+    await batch.commit();
+  }
+
+  Future<void> seedMockRooms(String hospitalId) async {
+    final roomsCol = _db.collection('hospitals').doc(hospitalId).collection('rooms');
+    final snap = await roomsCol.limit(1).get();
+    if (snap.docs.isNotEmpty) return;
+
+    final batch = _db.batch();
+    List<Map<String, dynamic>> initialRooms = [
+      {'roomNumber': '101', 'type': 'ICU', 'bedsCount': 2},
+      {'roomNumber': '102', 'type': 'ICU', 'bedsCount': 2},
+      {'roomNumber': '201', 'type': 'General', 'bedsCount': 4},
+      {'roomNumber': '202', 'type': 'General', 'bedsCount': 4},
+      {'roomNumber': 'Vip-1', 'type': 'Private', 'bedsCount': 1},
+    ];
+
+    int newBedsTotal = 0;
+
+    for (var r in initialRooms) {
+      final docRef = roomsCol.doc(r['roomNumber'] as String);
+      Map<String, dynamic> bedsMap = {};
+      final bedsCount = r['bedsCount'] as int;
+      newBedsTotal += bedsCount;
+
+      for (int i = 1; i <= bedsCount; i++) {
+        bedsMap['bed_$i'] = {
+          'status': 'available',
+          'last_updated': FieldValue.serverTimestamp(),
+        };
+      }
+
+      batch.set(docRef, {
+        'room_number': r['roomNumber'],
+        'type': r['type'],
+        'beds': bedsMap,
+      });
+    }
+
+    final hospitalRef = _db.collection('hospitals').doc(hospitalId);
+    batch.update(hospitalRef, {
+      'beds_total': newBedsTotal,
+      'beds_available': newBedsTotal,
+      'beds.total': newBedsTotal,
+      'beds.available': newBedsTotal,
+    });
+
+    await batch.commit();
+  }
+
+  Future<Map<String, String>?> allocateBedAndBookAppointment(
+    String hospitalId,
+    Appointment appointment,
+    String preferredBedType,
+    bool isEmergency,
+  ) async {
+    final roomsCol = _db.collection('hospitals').doc(hospitalId).collection('rooms');
+    final roomsSnap = await roomsCol.get();
+    
+    String targetType = isEmergency ? 'ICU' : preferredBedType;
+    DocumentSnapshot? targetRoomDoc;
+    String? targetBedId;
+    
+    for (int attempt = 0; attempt < 2; attempt++) {
+      for (var doc in roomsSnap.docs) {
+        final data = doc.data() as Map<String, dynamic>?;
+        if (data == null) continue;
+        
+        final type = data['type'] as String? ?? '';
+        if (type.toLowerCase() != targetType.toLowerCase()) continue;
+        
+        final bedsMap = data['beds'] as Map<String, dynamic>? ?? {};
+        
+        for (var entry in bedsMap.entries) {
+          final bedData = entry.value as Map<String, dynamic>;
+          final status = bedData['status'];
+          final lastUpdated = bedData['last_updated'] as Timestamp?;
+          
+          if (status == 'available') {
+            if (lastUpdated != null) {
+              final diff = DateTime.now().difference(lastUpdated.toDate());
+              if (diff.inMinutes <= 30) {
+                targetRoomDoc = doc;
+                targetBedId = entry.key;
+                break;
+              }
+            } else {
+              // Legacy/un-updated bed -> allow but note to update
+              targetRoomDoc = doc;
+              targetBedId = entry.key;
+              break;
+            }
+          }
+        }
+        if (targetRoomDoc != null) break;
+      }
+      
+      if (targetRoomDoc != null) break;
+      
+      if (attempt == 0 && isEmergency && targetType.toUpperCase() == 'ICU') {
+        targetType = 'General';
+      } else {
+        break;
+      }
+    }
+    
+    if (targetRoomDoc == null || targetBedId == null) {
+      return null;
+    }
+    
+    final roomRef = targetRoomDoc.reference;
+    final hospitalRef = _db.collection('hospitals').doc(hospitalId);
+    final appointmentsRef = _db.collection('appointments').doc();
+    
+    try {
+      await _db.runTransaction((transaction) async {
+        final freshRoomSnap = await transaction.get(roomRef);
+        final freshData = freshRoomSnap.data() as Map<String, dynamic>? ?? {};
+        final beds = freshData['beds'] as Map<String, dynamic>? ?? {};
+        final targetBedData = beds[targetBedId] as Map<String, dynamic>?;
+        
+        if (targetBedData == null || targetBedData['status'] != 'available') {
+          throw Exception("Bed was snatched by another user or removed.");
+        }
+        
+        transaction.update(roomRef, {
+          'beds.$targetBedId.status': 'occupied',
+          'beds.$targetBedId.last_updated': FieldValue.serverTimestamp(),
+        });
+        
+        transaction.update(hospitalRef, {
+          'beds_available': FieldValue.increment(-1),
+          'beds.available': FieldValue.increment(-1),
+          'last_updated': FieldValue.serverTimestamp(),
+        });
+        
+        final apptData = appointment.toMap();
+        apptData['assigned_room'] = freshData['room_number'] ?? freshRoomSnap.id;
+        apptData['assigned_bed'] = targetBedId;
+        transaction.set(appointmentsRef, apptData);
+      });
+      
+      return {
+        'room': (targetRoomDoc.data() as Map<String, dynamic>)['room_number'] ?? targetRoomDoc.id,
+        'bed': targetBedId,
+      };
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<void> upsertInventoryItem(

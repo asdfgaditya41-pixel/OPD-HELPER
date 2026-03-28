@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'hospital_dashboard_screen.dart';
 import 'hospital_selection_screen.dart';
 import 'map_home_screen.dart';
 
@@ -15,11 +14,7 @@ class RoleSelectionScreen extends StatelessWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              Color(0xFF0A1A20),
-              Color(0xFF0F2B35),
-              Color(0xFF122A34),
-            ],
+            colors: [Color(0xFF0A1A20), Color(0xFF0F2B35), Color(0xFF122A34)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -58,9 +53,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => const MapHomeScreen(),
-                      ),
+                      MaterialPageRoute(builder: (_) => const MapHomeScreen()),
                     );
                   },
                 ),
@@ -122,11 +115,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 color: color.withOpacity(0.18),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 26,
-              ),
+              child: Icon(icon, color: color, size: 26),
             ),
             const SizedBox(width: 16),
             Expanded(

@@ -6,6 +6,8 @@ import 'viewmodels/auth_viewmodel.dart';
 import 'viewmodels/hospital_viewmodel.dart';
 import 'viewmodels/inventory_viewmodel.dart';
 import 'viewmodels/analytics_viewmodel.dart';
+import 'viewmodels/bed_management_viewmodel.dart';
+import 'viewmodels/booking_viewmodel.dart';
 import 'screens/role_selection_screen.dart';
 import 'firebase_options.dart';
 
@@ -26,6 +28,8 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => InventoryViewModel()),
         ChangeNotifierProvider(create: (_) => AnalyticsViewModel()),
+        ChangeNotifierProvider(create: (_) => BedManagementViewModel()),
+        ChangeNotifierProvider(create: (_) => BookingViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

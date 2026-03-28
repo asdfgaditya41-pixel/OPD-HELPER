@@ -106,7 +106,9 @@ class _HospitalSelectionScreenState extends State<HospitalSelectionScreen> {
               });
             }
 
-            _selectedHospitalId ??= hospitals.first.id;
+            if (_selectedHospitalId == null || !hospitals.any((h) => h.id == _selectedHospitalId)) {
+              _selectedHospitalId = hospitals.first.id;
+            }
 
             return SafeArea(
               child: Padding(

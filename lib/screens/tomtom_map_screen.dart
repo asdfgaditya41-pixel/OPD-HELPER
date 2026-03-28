@@ -80,7 +80,8 @@ class _TomTomMapScreenState extends State<TomTomMapScreen> {
         lng: ${h.lng},
         queue: ${h.opdQueue},
         waitTime: ${h.waitTime},
-        beds: ${h.bedsAvailable}
+        beds: ${h.bedsAvailable},
+        type: "${h.type}"
       }
       """;
     }).join(",");
@@ -227,13 +228,7 @@ class _TomTomMapScreenState extends State<TomTomMapScreen> {
           hasMarkers = true;
           bounds.extend([h.lng, h.lat]);
 
-          var waitTime = h.waitTime;
-          var markerColor = '#4caf50'; // Green (<30m)
-          if (waitTime >= 60) {
-            markerColor = '#f44336'; // Red
-          } else if (waitTime >= 30) {
-            markerColor = '#ff9800'; // Orange
-          }
+          var markerColor = h.type === 'government' ? '#4caf50' : '#2196f3';
 
           var isBest = h.id === '${widget.bestHospitalId}';
           var symbol = isBest ? "⭐" : "🏥";

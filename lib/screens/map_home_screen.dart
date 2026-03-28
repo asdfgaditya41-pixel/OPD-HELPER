@@ -5,6 +5,7 @@ import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
 import 'tomtom_map_screen.dart';
 import 'hospital_detail_screen.dart';
+import 'ai_chat_screen.dart';
 
 class MapHomeScreen extends StatefulWidget {
   const MapHomeScreen({super.key});
@@ -181,12 +182,12 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
   }
 
   void _showAllHospitalsBottomSheet(HospitalViewModel vm) {
-    if (vm.hospitals.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hospitals available.', style: TextStyle(color: Colors.white)), backgroundColor: Color(0xFF122A34)));
+    if (vm.filteredHospitals.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hospitals available for selected type.', style: TextStyle(color: Colors.white)), backgroundColor: Color(0xFF122A34)));
       return;
     }
 
-    final sortedHospitals = List<Hospital>.from(vm.hospitals);
+    final sortedHospitals = List<Hospital>.from(vm.filteredHospitals);
     sortedHospitals.sort((a, b) {
       final distA = vm.getDistance(a.lat, a.lng);
       final distB = vm.getDistance(b.lat, b.lng);
@@ -302,13 +303,15 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
         children: [
           // 1. Full-screen map or loading
           if (!vm.isLoading && !_isLoadingLocation)
-            TomTomMapScreen(
-              hospitals: vm.hospitals,
-              userLat: vm.userLat,
-              userLng: vm.userLng,
-              hideAppBar: true,
-              bestHospitalId: vm.bestHospital?.id,
-            )
+            vm.filteredHospitals.isEmpty
+                ? _buildEmptyState()
+                : TomTomMapScreen(
+                    hospitals: vm.filteredHospitals,
+                    userLat: vm.userLat,
+                    userLng: vm.userLng,
+                    hideAppBar: true,
+                    bestHospitalId: vm.bestHospital?.id,
+                  )
           else
             Container(
               decoration: const BoxDecoration(
@@ -410,7 +413,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            "${vm.hospitals.length}",
+                            "${vm.filteredHospitals.length}",
                             style: const TextStyle(
                               color: Color(0xFF00E5CC),
                               fontWeight: FontWeight.w800,
@@ -424,8 +427,25 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
                 ),
                 const SizedBox(height: 12),
 
-                // Stats Card
+                // Type Filter Toggle
                 if (!vm.isLoading && vm.hospitals.isNotEmpty)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _filterChip(vm, 'All', 'all'),
+                        const SizedBox(width: 8),
+                        _filterChip(vm, 'Government', 'government'),
+                        const SizedBox(width: 8),
+                        _filterChip(vm, 'Private', 'private'),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 12),
+
+                // Stats Card
+                if (!vm.isLoading && vm.filteredHospitals.isNotEmpty)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     decoration: BoxDecoration(
@@ -452,6 +472,40 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
                     ),
                   ),
               ],
+            ),
+          ),
+
+          // 3. AI Chat Assistant FAB
+          Positioned(
+            bottom: 180,
+            right: 20,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF00E5CC), Color(0xFF00897B)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(color: const Color(0xFF00BFA5).withOpacity(0.4), blurRadius: 16, offset: const Offset(0, 6)),
+                  BoxShadow(color: const Color(0xFF00E5CC).withOpacity(0.3), blurRadius: 5, spreadRadius: 2),
+                ],
+              ),
+              child: FloatingActionButton(
+                heroTag: 'ai_chat_fab',
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (_) => const AiChatScreen(),
+                  );
+                },
+                child: const Icon(Icons.auto_awesome_rounded, color: Colors.white, size: 28),
+              ),
             ),
           ),
 
@@ -593,6 +647,77 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
           ),
         ),
       ],
+    );
+  }
+
+  Widget _filterChip(HospitalViewModel vm, String label, String value) {
+    final isSelected = vm.selectedTypeFilter == value;
+    return ChoiceChip(
+      label: Text(label),
+      selected: isSelected,
+      onSelected: (selected) {
+        if (selected) vm.setHospitalTypeFilter(value);
+      },
+      selectedColor: const Color(0xFF00BFA5).withOpacity(0.25),
+      backgroundColor: const Color(0xFF0A1A20).withOpacity(0.95),
+      showCheckmark: false,
+      labelStyle: TextStyle(
+        color: isSelected ? const Color(0xFF00E5CC) : Colors.white70,
+        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+        fontSize: 13,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isSelected ? const Color(0xFF00BFA5) : Colors.white12,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF0A1A20), Color(0xFF0F2B35)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.orange.withOpacity(0.1),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Colors.orange.withOpacity(0.2),
+                  width: 2,
+                ),
+              ),
+              child: const Icon(
+                Icons.search_off_rounded,
+                color: Colors.orange,
+                size: 48,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              "No hospitals found for\\nselected category",
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
