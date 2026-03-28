@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
 import 'viewmodels/hospital_viewmodel.dart';
 import 'screens/map_home_screen.dart';
+import 'screens/home_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
@@ -60,7 +62,7 @@ class MyApp extends StatelessWidget {
             elevation: 0,
           ),
         ),
-        home: const MapHomeScreen(),
+        home: kIsWeb ? const HomeScreen() : const MapHomeScreen(),
       ),
     );
   }

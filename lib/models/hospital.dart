@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Hospital {
   final String id;
   final String name;
@@ -13,6 +15,8 @@ class Hospital {
   final String zone;
   final double loadIndex;
   final String contactNumber;
+  final DateTime? lastUpdated;
+  final int noBedsReports;
 
   Hospital({
     required this.id,
@@ -29,6 +33,8 @@ class Hospital {
     required this.zone,
     required this.loadIndex,
     required this.contactNumber,
+    this.lastUpdated,
+    this.noBedsReports = 0,
   });
 
   factory Hospital.fromFirestore(Map<String, dynamic> data, String id) {
@@ -46,6 +52,10 @@ class Hospital {
       zone: data['zone'] ?? 'Unknown',
       loadIndex: (data['load_index'] ?? 0).toDouble(),
       contactNumber: data['contact_number'] ?? '102',
+      lastUpdated: data['last_updated'] != null
+          ? (data['last_updated'] as Timestamp).toDate()
+          : null,
+      noBedsReports: data['no_beds_reports'] ?? 0,
       waitTime:
           data['wait_time'] ??
           (data['doctors'] == 0

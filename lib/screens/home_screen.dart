@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
 import 'tomtom_map_screen.dart';
 import 'hospital_detail_screen.dart';
@@ -167,6 +168,96 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ],
             );
           },
+        );
+      },
+    );
+  }
+
+  void _showUpdateBedsDialog(BuildContext context, Hospital h) {
+    final bedsController = TextEditingController(text: h.bedsAvailable.toString());
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          backgroundColor: const Color(0xFF122A34),
+          title: Container(
+            padding: const EdgeInsets.only(bottom: 12),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: Color(0xFFFFB74D), width: 2)),
+            ),
+            child: const Row(
+              children: [
+                Icon(Icons.bed_rounded, color: Color(0xFFFFB74D), size: 28),
+                SizedBox(width: 12),
+                Text(
+                  "Update Bed Status",
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20),
+                ),
+              ],
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              const Text(
+                "Updating bed availability ensures patients have accurate real-time data.",
+                style: TextStyle(color: Colors.white70, fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: bedsController,
+                style: const TextStyle(color: Colors.white),
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Available Beds',
+                  prefixIcon: const Icon(Icons.manage_accounts_rounded, color: Color(0xFFFFB74D)),
+                  labelStyle: const TextStyle(color: Colors.white54),
+                  filled: true,
+                  fillColor: Colors.white.withOpacity(0.05),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: Color(0xFFFFB74D), width: 2),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel", style: TextStyle(color: Colors.white.withOpacity(0.5))),
+            ),
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Color(0xFFFFB74D), Color(0xFFF57C00)]),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                onPressed: () async {
+                  final text = bedsController.text.trim();
+                  if (text.isNotEmpty && int.tryParse(text) != null) {
+                    final vm = Provider.of<HospitalViewModel>(context, listen: false);
+                    await vm.updateBeds(h.id, int.parse(text));
+                    if (context.mounted) Navigator.pop(context);
+                  }
+                },
+                child: const Text("Update", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -443,6 +534,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
+                                      if (vm.getConfidenceLevel(h) == ConfidenceLevel.Low)
+                                        _warningBanner(vm, h),
                                       /// NAME + STATUS
                                       Row(
                                         children: [
@@ -615,6 +708,63 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   );
                 },
               ),
+      ),
+    );
+  }
+
+  Widget _warningBanner(HospitalViewModel vm, Hospital h) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFF5252).withOpacity(0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFF5252).withOpacity(0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 2),
+            child: Icon(Icons.warning_amber_rounded, color: Color(0xFFFF5252), size: 20),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "⚠️ Please update bed status",
+                  style: TextStyle(
+                    color: Color(0xFFFF5252),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  "Data is outdated (Last updated: ${vm.getTimeAgoFormatted(h.lastUpdated)}).",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.6),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF5252),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+              minimumSize: const Size(60, 30),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => _showUpdateBedsDialog(context, h),
+            child: const Text("Update", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+          ),
+        ],
       ),
     );
   }

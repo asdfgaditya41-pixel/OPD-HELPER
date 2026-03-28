@@ -133,4 +133,30 @@ class FirestoreService {
       await b.commit();
     }
   }
+
+  // ─────────────────────────────────────────────────────────
+  // RELIABILITY LAYER METHODS
+  // ─────────────────────────────────────────────────────────
+
+  /// Updates the hospital's bed count and resets the `last_updated` timestamp.
+  /// Also resets `no_beds_reports` since the data is now fresh.
+  Future<void> updateBedsAndTimestamp(String hospitalId, int bedsAvailable) async {
+    final hospitalRef = _db.collection('hospitals').doc(hospitalId);
+    
+    await hospitalRef.update({
+      'beds_available': bedsAvailable,
+      'last_updated': FieldValue.serverTimestamp(),
+      'no_beds_reports': 0, // Reset reports when hospital officially updates
+    });
+  }
+
+  /// Increments the `no_beds_reports` counter for a given hospital.
+  /// Used by B2C users to report inconsistencies.
+  Future<void> reportNoBeds(String hospitalId) async {
+    final hospitalRef = _db.collection('hospitals').doc(hospitalId);
+    
+    await hospitalRef.update({
+      'no_beds_reports': FieldValue.increment(1),
+    });
+  }
 }

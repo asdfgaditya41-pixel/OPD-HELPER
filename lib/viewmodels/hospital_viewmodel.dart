@@ -4,6 +4,8 @@ import 'package:geolocator/geolocator.dart';
 import '../models/hospital.dart';
 import '../services/firestore_service.dart';
 
+enum ConfidenceLevel { High, Medium, Low }
+
 class HospitalViewModel extends ChangeNotifier {
 
   // ─────────────────────────────────────────────────────────
@@ -142,6 +144,102 @@ class HospitalViewModel extends ChangeNotifier {
     final estimatedTime = conditionTimes[condition] ?? 15;
     await _service.addPatientAndUpdateWaitTime(id, name, condition, estimatedTime);
     // No manual list update needed — Firestore stream pushes updated hospital doc
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // RELIABILITY LAYER & BED UPDATES
+  // ─────────────────────────────────────────────────────────
+  Future<void> updateBeds(String id, int bedsAvailable) async {
+    await _service.updateBedsAndTimestamp(id, bedsAvailable);
+  }
+
+  Future<void> reportNoBeds(String id) async {
+    await _service.reportNoBeds(id);
+  }
+
+  String getTimeAgoFormatted(DateTime? lastUpdated) {
+    if (lastUpdated == null) return "Unknown";
+    final diff = DateTime.now().difference(lastUpdated);
+    if (diff.inMinutes < 1) return "Just now";
+    if (diff.inMinutes < 60) return "${diff.inMinutes} mins ago";
+    if (diff.inHours < 24) return "${diff.inHours} hrs ago";
+    return "${diff.inDays} days ago";
+  }
+
+  ConfidenceLevel getConfidenceLevel(Hospital h) {
+    // High reports force Low Confidence immediately
+    if (h.noBedsReports >= 3) return ConfidenceLevel.Low;
+
+    if (h.lastUpdated == null) return ConfidenceLevel.Low;
+
+    final diff = DateTime.now().difference(h.lastUpdated!);
+    if (diff.inMinutes <= 30) return ConfidenceLevel.High;
+    if (diff.inMinutes <= 120) return ConfidenceLevel.Medium;
+    return ConfidenceLevel.Low;
+  }
+
+  int getPredictedBeds(Hospital h) {
+    // If we have high/medium confidence, trust the actual stated beds
+    if (getConfidenceLevel(h) != ConfidenceLevel.Low) {
+      return h.bedsAvailable;
+    }
+
+    // Heuristic Fallback
+    // Assume up to 10% of the current queue might occupy beds
+    int potentialBedAdmissions = (h.opdQueue * 0.10).ceil();
+    int currentHour = DateTime.now().hour;
+
+    // Optional Time-of-day logic
+    // Evictions/Discharges usually happen in the morning, meaning more beds open up.
+    // Admissions without discharges often pile up in the evening/night.
+    double timeMultiplier = 1.0;
+    if (currentHour >= 18 || currentHour < 6) {
+      timeMultiplier = 1.5; // Evening/Night: Admissions drain beds faster
+    } else if (currentHour >= 8 && currentHour <= 12) {
+      timeMultiplier = 0.5; // Morning: Discharges happening, beds might actually free up
+    }
+
+    int projectedTakenBeds = (potentialBedAdmissions * timeMultiplier).ceil();
+    int predictedBeds = h.bedsAvailable - projectedTakenBeds;
+    
+    // Safety fallback: if noBedsReports are high, predict 0
+    if (h.noBedsReports >= 3) predictedBeds = 0;
+
+    return predictedBeds > 0 ? predictedBeds : 0;
+  }
+
+  List<Hospital> getTopEmergencyHospitals({int count = 3}) {
+    if (hospitals.isEmpty || userLat == null || userLng == null) return [];
+
+    final List<Map<String, dynamic>> scoredHospitals = [];
+
+    for (var h in hospitals) {
+      final dist = getDistance(h.lat, h.lng);
+      final predictedBeds = getPredictedBeds(h);
+      final confidence = getConfidenceLevel(h);
+
+      // Scoring Weights
+      // Distance is very important (lower is better, we will penalize distance)
+      // Beds are important (more is better)
+      // Confidence acts as a modifier
+      
+      double score = 0;
+      score -= (dist * 10); // penalize distance heavily
+      score += (predictedBeds * 2); // reward beds
+      
+      if (confidence == ConfidenceLevel.High) score += 15;
+      else if (confidence == ConfidenceLevel.Low) score -= 15;
+
+      scoredHospitals.add({'hospital': h, 'score': score, 'distance': dist});
+    }
+
+    // Sort descending by score (highest score first)
+    scoredHospitals.sort((a, b) => (b['score'] as double).compareTo(a['score'] as double));
+
+    return scoredHospitals
+        .take(count)
+        .map((entry) => entry['hospital'] as Hospital)
+        .toList();
   }
 
   // ─────────────────────────────────────────────────────────

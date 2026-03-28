@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
 import 'tomtom_map_screen.dart';
-import 'home_screen.dart';
 
 class MapHomeScreen extends StatefulWidget {
   const MapHomeScreen({super.key});
@@ -59,30 +58,21 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
     if (vm.hospitals.isEmpty || vm.userLat == null || vm.userLng == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Cannot locate nearest hospital at the moment.', style: TextStyle(color: Colors.white)),
+          content: Text('Cannot locate any hospitals at the moment.', style: TextStyle(color: Colors.white)),
           backgroundColor: Color(0xFF122A34),
         ),
       );
       return;
     }
 
-    Hospital? nearest;
-    double minDistance = double.infinity;
-
-    for (final h in vm.hospitals) {
-      final dist = vm.getDistance(h.lat, h.lng);
-      if (dist < minDistance) {
-        minDistance = dist;
-        nearest = h;
-      }
-    }
-
-    if (nearest != null) {
-      _showEmergencyDialog(nearest, minDistance);
+    final topHospitals = vm.getTopEmergencyHospitals(count: 3);
+    
+    if (topHospitals.isNotEmpty) {
+      _showEmergencyDialog(vm, topHospitals);
     }
   }
 
-  void _showEmergencyDialog(Hospital nearest, double distance) {
+  void _showEmergencyDialog(HospitalViewModel vm, List<Hospital> hospitals) {
     showDialog(
       context: context,
       builder: (context) {
@@ -94,8 +84,8 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
               Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 28),
               SizedBox(width: 12),
               Text(
-                "Emergency",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20, letterSpacing: 0.3),
+                "Emergency Options",
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: 0.3),
               ),
             ],
           ),
@@ -104,56 +94,78 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                "Nearest Hospital:",
-                style: TextStyle(color: Colors.white54, fontSize: 14),
+                "Recommended optimal hospitals based on distance, beds, and reliability:",
+                style: TextStyle(color: Colors.white54, fontSize: 13),
               ),
-              const SizedBox(height: 4),
-              Text(
-                nearest.name,
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.location_on_rounded, color: Color(0xFF00E5CC), size: 16),
-                  const SizedBox(width: 4),
-                  Text("${distance.toStringAsFixed(1)} km away", style: const TextStyle(color: Colors.white70)),
-                ],
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: Container(
+              const SizedBox(height: 16),
+              ...hospitals.map((h) {
+                final distance = vm.getDistance(h.lat, h.lng);
+                final confidence = vm.getConfidenceLevel(h);
+                
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(colors: [Colors.redAccent, Color(0xFFD32F2F)]),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(color: Colors.redAccent.withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4)),
+                    color: Colors.white.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: confidence == ConfidenceLevel.Low
+                          ? Colors.orange.withOpacity(0.3)
+                          : const Color(0xFF00BFA5).withOpacity(0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              h.name,
+                              style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                const Icon(Icons.location_on_rounded, color: Color(0xFF00E5CC), size: 14),
+                                const SizedBox(width: 4),
+                                Text("${distance.toStringAsFixed(1)} km", style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                const SizedBox(width: 10),
+                                const Icon(Icons.bed_rounded, color: Color(0xFF81C784), size: 14),
+                                const SizedBox(width: 4),
+                                Text(
+                                  "${vm.getPredictedBeds(h)} beds",
+                                  style: TextStyle(
+                                    color: confidence == ConfidenceLevel.Low ? Colors.orange : Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      IconButton(
+                        style: IconButton.styleFrom(
+                          backgroundColor: Colors.redAccent.withOpacity(0.15),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        icon: const Icon(Icons.phone_rounded, color: Colors.redAccent, size: 20),
+                        onPressed: () async {
+                          final url = Uri.parse('tel:${h.contactNumber}');
+                          if (await canLaunchUrl(url)) {
+                            await launchUrl(url);
+                          }
+                          if (context.mounted) Navigator.pop(context);
+                        },
+                      ),
                     ],
                   ),
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    ),
-                    onPressed: () async {
-                      final url = Uri.parse('tel:${nearest.contactNumber}');
-                      if (await canLaunchUrl(url)) {
-                        await launchUrl(url);
-                      }
-                      if (context.mounted) Navigator.pop(context);
-                    },
-                    icon: const Icon(Icons.phone_rounded, size: 22),
-                    label: Text(
-                      "Call Ambulance (${nearest.contactNumber})",
-                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-                    ),
-                  ),
-                ),
-              ),
+                );
+              }),
             ],
           ),
           actions: [
@@ -329,83 +341,9 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
             ),
           ),
 
-          // 3. Bottom — Show All Hospitals button
-          Positioned(
-            bottom: 36,
-            left: 20,
-            right: 20,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF00BFA5), Color(0xFF00897B)],
-                ),
-                borderRadius: BorderRadius.circular(22),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF00BFA5).withOpacity(0.35),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(22),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      PageRouteBuilder(
-                        pageBuilder: (_, _, _) => const HomeScreen(),
-                        transitionsBuilder: (_, animation, _, child) {
-                          return SlideTransition(
-                            position: Tween(
-                              begin: const Offset(0, 1),
-                              end: Offset.zero,
-                            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
-                            child: child,
-                          );
-                        },
-                        transitionDuration: const Duration(milliseconds: 400),
-                      ),
-                    );
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.list_alt_rounded, color: Colors.white, size: 22),
-                        const SizedBox(width: 10),
-                        const Text(
-                          "Show All Hospitals",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 16),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
           // 4. My Location Button
           Positioned(
-            bottom: 180,
+            bottom: 110,
             right: 20,
             child: Container(
               decoration: BoxDecoration(
@@ -446,7 +384,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
 
           // 5. Emergency FAB
           Positioned(
-            bottom: 110,
+            bottom: 36,
             right: 20,
             child: Container(
               decoration: BoxDecoration(

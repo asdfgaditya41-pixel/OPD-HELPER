@@ -17,6 +17,7 @@ class HospitalDetailScreen extends StatefulWidget {
 class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animController;
+  bool _isReporting = false;
 
   @override
   void initState() {
@@ -127,14 +128,22 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               children: [
                 // 1. Prediction Card
                 _buildAnimatedChild(0, _buildPredictionCard(expectedTimeString, bestTime)),
+                const SizedBox(height: 16),
+
+                // 2. Bed Availability Card
+                _buildAnimatedChild(1, _buildBedAvailabilityCard(vm, h)),
+                const SizedBox(height: 16),
+
+                // 3. Stats Grid (3 items)
+                _buildAnimatedChild(2, _buildStatsGrid(totalWaitTimeString, loadText, loadColor, h.opdQueue)),
                 const SizedBox(height: 20),
 
-                // 2. Stats Grid
-                _buildAnimatedChild(1, _buildStatsGrid(totalWaitTimeString, loadText, loadColor, h.opdQueue, h.bedsAvailable)),
+                // 4. Report Action
+                _buildAnimatedChild(3, _buildReportButton(vm, h)),
                 const SizedBox(height: 28),
 
-                // 3. Chart Title
-                _buildAnimatedChild(2, Row(
+                // 5. Chart Title
+                _buildAnimatedChild(4, Row(
                   children: [
                     Container(
                       padding: const EdgeInsets.all(8),
@@ -165,8 +174,8 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                 )),
                 const SizedBox(height: 16),
 
-                // 4. Chart
-                _buildAnimatedChild(3, _buildChartCard(vm.generateHistoricalWaitTimes(h), loadColor)),
+                // 6. Chart
+                _buildAnimatedChild(5, _buildChartCard(vm.generateHistoricalWaitTimes(h), loadColor)),
               ],
             ),
           ),
@@ -310,7 +319,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     );
   }
 
-  Widget _buildStatsGrid(String waitTime, String loadText, Color loadColor, int queue, int beds) {
+  Widget _buildStatsGrid(String waitTime, String loadText, Color loadColor, int queue) {
     return Row(
       children: [
         _statCard("Wait Time", waitTime, Icons.hourglass_bottom_rounded, const Color(0xFFFFB74D)),
@@ -318,9 +327,216 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
         _statCard("Load", loadText, Icons.speed_rounded, loadColor),
         const SizedBox(width: 10),
         _statCard("Queue", "$queue", Icons.people_alt_rounded, const Color(0xFF64B5F6)),
-        const SizedBox(width: 10),
-        _statCard("Beds", "$beds", Icons.bed_rounded, const Color(0xFF81C784)),
       ],
+    );
+  }
+
+  Widget _buildBedAvailabilityCard(HospitalViewModel vm, Hospital h) {
+    ConfidenceLevel confidence = vm.getConfidenceLevel(h);
+    int displayBeds = vm.getPredictedBeds(h);
+    bool isPredicted = confidence == ConfidenceLevel.Low;
+
+    Color confidenceColor;
+    String statusText;
+    switch (confidence) {
+      case ConfidenceLevel.High:
+        confidenceColor = const Color(0xFF00E676);
+        statusText = "High Confidence";
+        break;
+      case ConfidenceLevel.Medium:
+        confidenceColor = const Color(0xFFFFB300);
+        statusText = "Medium Confidence";
+        break;
+      case ConfidenceLevel.Low:
+        confidenceColor = const Color(0xFFFF5252);
+        statusText = "Low Conf (estimated)";
+        break;
+    }
+
+    String timeAgo = vm.getTimeAgoFormatted(h.lastUpdated);
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFF81C784).withOpacity(0.12),
+            const Color(0xFF81C784).withOpacity(0.04),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFF81C784).withOpacity(0.25), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF81C784).withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF81C784).withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(Icons.bed_rounded, color: Color(0xFF81C784), size: 22),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                "Bed Availability",
+                style: TextStyle(
+                  color: Color(0xFF81C784),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: confidenceColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: confidenceColor.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: confidenceColor,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(color: confidenceColor.withOpacity(0.6), blurRadius: 4),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      statusText,
+                      style: TextStyle(
+                        color: confidenceColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                "$displayBeds",
+                style: TextStyle(
+                  color: isPredicted ? Colors.white70 : Colors.white,
+                  fontSize: 42,
+                  fontWeight: FontWeight.w900,
+                  height: 1,
+                  decoration: h.bedsAvailable == 0 && !isPredicted ? TextDecoration.lineThrough : null,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Text(
+                  isPredicted ? "estimated beds available" : "beds currently available",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.6),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Icon(Icons.update_rounded, color: Colors.white54, size: 14),
+              const SizedBox(width: 6),
+              Text(
+                "Last updated: $timeAgo",
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReportButton(HospitalViewModel vm, Hospital h) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: _isReporting
+              ? null
+              : () async {
+                  setState(() => _isReporting = true);
+                  await vm.reportNoBeds(h.id);
+                  if (mounted) {
+                    setState(() => _isReporting = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Thank you! Beds reported as unavailable.', style: TextStyle(color: Colors.white)),
+                        backgroundColor: const Color(0xFF122A34),
+                      ),
+                    );
+                  }
+                },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (_isReporting)
+                  const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orangeAccent),
+                  )
+                else
+                  const Icon(Icons.feedback_rounded, color: Colors.orangeAccent, size: 20),
+                const SizedBox(width: 10),
+                Text(
+                  _isReporting ? "Reporting..." : "Report: No beds available",
+                  style: TextStyle(
+                    color: _isReporting ? Colors.white54 : Colors.orangeAccent,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -379,6 +595,22 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   }
 
   Widget _buildChartCard(List<double> spots, Color primaryColor) {
+    double maxSpot = spots.reduce((a, b) => a > b ? a : b);
+    // Add 40% padding on top for the curve, ensure minimum height of 60
+    double rawMaxY = (maxSpot * 1.4);
+    if (rawMaxY < 60) rawMaxY = 60;
+
+    // Dynamically adjust Y-axis labels to prevent crowding
+    double yInterval = 30;
+    if (rawMaxY > 600) {
+      yInterval = 120;
+    } else if (rawMaxY > 300) {
+      yInterval = 60;
+    }
+
+    // Snap the maxY to exactly a multiple of yInterval to prevent label overlaps
+    double maxYValue = (rawMaxY / yInterval).ceilToDouble() * yInterval;
+
     return Container(
       height: 280,
       padding: const EdgeInsets.only(right: 24, left: 12, top: 28, bottom: 16),
@@ -434,8 +666,12 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
-                interval: 30,
+                interval: yInterval,
                 getTitlesWidget: (value, meta) {
+                  // Ensure we don't draw an out-of-interval label that might overlap
+                  if (value % yInterval != 0 && value != maxYValue && value != 0) {
+                    return const SizedBox.shrink();
+                  }
                   return Text(
                     "${value.toInt()}m",
                     style: TextStyle(
@@ -453,7 +689,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           minX: 0,
           maxX: (spots.length - 1).toDouble(),
           minY: 0,
-          maxY: (spots.reduce((a, b) => a > b ? a : b) * 1.5).clamp(60, 300).toDouble(),
+          maxY: maxYValue,
           lineBarsData: [
             LineChartBarData(
               spots: List.generate(spots.length, (index) => FlSpot(index.toDouble(), spots[index])),
