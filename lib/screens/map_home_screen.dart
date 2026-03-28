@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
 import 'tomtom_map_screen.dart';
+import 'hospital_detail_screen.dart';
 
 class MapHomeScreen extends StatefulWidget {
   const MapHomeScreen({super.key});
@@ -174,6 +175,119 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
               child: Text("Cancel", style: TextStyle(color: Colors.white.withOpacity(0.5))),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showAllHospitalsBottomSheet(HospitalViewModel vm) {
+    if (vm.hospitals.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hospitals available.', style: TextStyle(color: Colors.white)), backgroundColor: Color(0xFF122A34)));
+      return;
+    }
+
+    final sortedHospitals = List<Hospital>.from(vm.hospitals);
+    sortedHospitals.sort((a, b) {
+      final distA = vm.getDistance(a.lat, a.lng);
+      final distB = vm.getDistance(b.lat, b.lng);
+      return distA.compareTo(distB);
+    });
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: const BoxDecoration(
+            color: Color(0xFF0A1A20),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+              const Padding(
+                padding: EdgeInsets.all(20),
+                child: Text(
+                  "Hospitals Near You",
+                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                ),
+              ),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  itemCount: sortedHospitals.length,
+                  itemBuilder: (context, index) {
+                    final h = sortedHospitals[index];
+                    final dist = vm.getDistance(h.lat, h.lng);
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white.withOpacity(0.1)),
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Navigator.push(context, MaterialPageRoute(builder: (_) => HospitalDetailScreen(hospital: h)));
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF00BFA5).withOpacity(0.15),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.local_hospital_rounded, color: Color(0xFF00E5CC), size: 24),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        h.name,
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Row(
+                                        children: [
+                                          const Icon(Icons.location_on_rounded, color: Color(0xFF00E5CC), size: 14),
+                                          const SizedBox(width: 4),
+                                          Text("${dist.toStringAsFixed(1)} km", style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500)),
+                                          const SizedBox(width: 16),
+                                          const Icon(Icons.bed_rounded, color: Color(0xFF81C784), size: 14),
+                                          const SizedBox(width: 4),
+                                          Text("${vm.getPredictedBeds(h)} beds", style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500)),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                const Icon(Icons.chevron_right_rounded, color: Colors.white38),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         );
       },
     );
@@ -404,6 +518,43 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
                 elevation: 0,
                 onPressed: () => _handleEmergency(vm),
                 child: const Icon(Icons.emergency_rounded, color: Colors.white, size: 32),
+              ),
+            ),
+          ),
+
+          // 6. Show All Hospitals Button
+          Positioned(
+            bottom: 36,
+            left: 20,
+            right: 88, // Reserve space for the Emergency FAB (20 + 56 + 12 gap = 88)
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF00BFA5), Color(0xFF00E5CC)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF00BFA5).withOpacity(0.3),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                ),
+                onPressed: () => _showAllHospitalsBottomSheet(vm),
+                icon: const Icon(Icons.list_rounded, size: 24),
+                label: const Text(
+                  "Show All Hospitals",
+                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                ),
               ),
             ),
           ),

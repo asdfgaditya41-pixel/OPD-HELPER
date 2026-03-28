@@ -4,6 +4,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
+import '../viewmodels/auth_viewmodel.dart';
+import 'components/auth_options_bottom_sheet.dart';
+import 'booking_screen.dart';
 
 class HospitalDetailScreen extends StatefulWidget {
   final Hospital hospital;
@@ -37,6 +40,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<HospitalViewModel>(context, listen: false);
+    final authVm = Provider.of<AuthViewModel>(context);
     final h = widget.hospital;
 
     int expectedTime = vm.getExpectedConsultationTime(h);
@@ -67,6 +71,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           ),
         ),
         actions: [
+          _buildProfileIndicator(authVm),
           Container(
             margin: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
             decoration: BoxDecoration(
@@ -176,6 +181,11 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
 
                 // 6. Chart
                 _buildAnimatedChild(5, _buildChartCard(vm.generateHistoricalWaitTimes(h), loadColor)),
+                const SizedBox(height: 32),
+
+                // 7. Book Appointment
+                _buildAnimatedChild(6, _buildBookAppointmentButton(authVm, h)),
+                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -743,6 +753,116 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
         ),
         duration: const Duration(milliseconds: 1200),
         curve: Curves.easeInOutCubic,
+      ),
+    );
+  }
+
+  void _showAuthSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (_) => AuthOptionsBottomSheet(
+        onAuthenticated: () {
+          // Once authenticated via sheet, proceed to booking seamlessly
+          Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(hospital: widget.hospital)));
+        },
+      ),
+    );
+  }
+
+  Widget _buildProfileIndicator(AuthViewModel authVm) {
+    return GestureDetector(
+      onTap: () {
+        if (authVm.isLoggedIn) {
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              backgroundColor: const Color(0xFF122A34),
+              title: const Text("Account", style: TextStyle(color: Colors.white)),
+              content: Text("Logged in as ${authVm.appUser?.name ?? authVm.appUser?.email}", style: const TextStyle(color: Colors.white70)),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    authVm.signOut();
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Sign Out", style: TextStyle(color: Colors.redAccent)),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Close", style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          );
+        } else {
+          _showAuthSheet();
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(top: 8, bottom: 8, right: 8),
+        width: 40,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.08),
+          shape: BoxShape.circle,
+        ),
+        child: ClipOval(
+          child: authVm.isLoggedIn
+              ? (authVm.appUser?.photoUrl != null
+                  ? Image.network(authVm.appUser!.photoUrl!, fit: BoxFit.cover, errorBuilder: (c, e, s) => _buildFallbackIcon())
+                  : Center(child: Text(authVm.appUser?.name.isNotEmpty == true ? authVm.appUser!.name[0].toUpperCase() : '?', style: const TextStyle(color: Color(0xFF00E5CC), fontWeight: FontWeight.bold))))
+              : _buildFallbackIcon(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFallbackIcon() {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Image.network("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/120px-Google_%22G%22_logo.svg.png", fit: BoxFit.contain, errorBuilder: (c, e, s) => const Icon(Icons.person_rounded, color: Colors.white, size: 20)),
+    );
+  }
+
+  Widget _buildBookAppointmentButton(AuthViewModel authVm, Hospital h) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF00BFA5), Color(0xFF00E5CC)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF00BFA5).withOpacity(0.4),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          foregroundColor: Colors.black,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        ),
+        onPressed: () {
+          if (authVm.isLoggedIn) {
+            Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(hospital: h)));
+          } else {
+            _showAuthSheet();
+          }
+        },
+        icon: const Icon(Icons.calendar_month_rounded, size: 24),
+        label: const Text(
+          "Book Appointment",
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+        ),
       ),
     );
   }
