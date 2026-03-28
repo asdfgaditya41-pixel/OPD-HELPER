@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
 
@@ -64,6 +65,45 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             onPressed: () => Navigator.pop(context),
           ),
         ),
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 12, top: 8, bottom: 8),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF00BFA5), Color(0xFF00897B)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF00BFA5).withOpacity(0.35),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: IconButton(
+              icon: const Icon(Icons.phone_rounded, color: Colors.white, size: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
+              onPressed: () async {
+                final url = Uri.parse('tel:${h.contactNumber}');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url);
+                } else {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Cannot call ${h.contactNumber}'),
+                        backgroundColor: const Color(0xFF122A34),
+                      ),
+                    );
+                  }
+                }
+              },
+            ),
+          ),
+        ],
       ),
       body: Container(
         decoration: const BoxDecoration(
