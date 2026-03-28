@@ -9,8 +9,10 @@ class HospitalViewModel extends ChangeNotifier {
   // ─────────────────────────────────────────────────────────
   // STATE
   // ─────────────────────────────────────────────────────────
-  List<Hospital> hospitals = [];
+  List<Hospital> hospitals = [];        // filtered: within 50km of user
+  List<Hospital> _allHospitals = [];    // raw: all from Firestore
   bool isLoading = true;
+  static const double _radiusKm = 50.0;
 
   double? userLat;
   double? userLng;
@@ -63,11 +65,27 @@ class HospitalViewModel extends ChangeNotifier {
     _hospitalsSubscription = _service
         .getAllHospitals()
         .listen((incoming) {
-      hospitals = incoming;
+      _allHospitals = incoming;
+      _applyRadiusFilter();
       isLoading = false;
-      _recomputeCache(); // compute once, not on every build()
+      _recomputeCache();
       notifyListeners();
     });
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // RADIUS FILTER — keep only hospitals within 50km
+  // If location not available yet, show all (will re-filter when location arrives)
+  // ─────────────────────────────────────────────────────────
+  void _applyRadiusFilter() {
+    if (userLat == null || userLng == null) {
+      // Location not yet known — show all hospitals so map isn't empty
+      hospitals = List.from(_allHospitals);
+    } else {
+      hospitals = _allHospitals
+          .where((h) => _distanceKm(h.lat, h.lng) <= _radiusKm)
+          .toList();
+    }
   }
 
   // ─────────────────────────────────────────────────────────
@@ -141,19 +159,34 @@ class HospitalViewModel extends ChangeNotifier {
       }
       if (permission == LocationPermission.deniedForever) return;
 
-      final position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.medium,
-        timeLimit: const Duration(seconds: 5), // Prevent infinite hang
-      );
-      userLat = position.latitude;
-      userLng = position.longitude;
+      // Step 1: Try last known position first — instant, no GPS wait
+      Position? position = await Geolocator.getLastKnownPosition();
 
-      // Recompute best hospital now that location is available
-      _recomputeCache();
-      notifyListeners();
+      if (position != null) {
+        userLat = position.latitude;
+        userLng = position.longitude;
+        _applyRadiusFilter();
+        _recomputeCache();
+        notifyListeners();
+      }
+
+      // Step 2: Get a fresh accurate fix in background (20s timeout for real devices)
+      try {
+        final freshPosition = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.medium,
+          timeLimit: const Duration(seconds: 20),
+        );
+        userLat = freshPosition.latitude;
+        userLng = freshPosition.longitude;
+        _applyRadiusFilter();
+        _recomputeCache();
+        notifyListeners();
+      } catch (timeoutError) {
+        // If fresh fix fails/times out, we already have last known position — that's fine
+        debugPrint("Fresh GPS fix timed out, using last known: $timeoutError");
+      }
     } catch (e) {
-      debugPrint("Error fetching location: $e");
-      // Fails silently, coordinates will just be null, which MapHomeScreen gracefully handles
+      debugPrint("Location error: $e");
     }
   }
 

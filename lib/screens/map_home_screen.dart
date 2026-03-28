@@ -15,6 +15,7 @@ class MapHomeScreen extends StatefulWidget {
 
 class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProviderStateMixin {
   bool _isLoadingLocation = true;
+  bool _isFetchingLocation = false;
   late AnimationController _animController;
 
   @override
@@ -36,13 +37,22 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
   }
 
   Future<void> _fetchLocation(HospitalViewModel vm) async {
-    await vm.getUserLocation();
+    setState(() => _isFetchingLocation = true);
+    await vm.getUserLocation(); // properly await so location is ready before map renders
     if (mounted) {
       setState(() {
         _isLoadingLocation = false;
+        _isFetchingLocation = false;
       });
       _animController.forward();
     }
+  }
+
+  Future<void> _retryLocation(HospitalViewModel vm) async {
+    if (_isFetchingLocation) return;
+    setState(() => _isFetchingLocation = true);
+    await vm.getUserLocation();
+    if (mounted) setState(() => _isFetchingLocation = false);
   }
 
   void _handleEmergency(HospitalViewModel vm) {
@@ -393,7 +403,48 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
             ),
           ),
 
-          // 4. Emergency FAB
+          // 4. My Location Button
+          Positioned(
+            bottom: 180,
+            right: 20,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF0A1A20).withOpacity(0.92),
+                border: Border.all(
+                  color: vm.userLat != null
+                      ? const Color(0xFF00BFA5).withOpacity(0.6)
+                      : Colors.white.withOpacity(0.2),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4)),
+                ],
+              ),
+              child: FloatingActionButton(
+                heroTag: 'location_fab',
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                onPressed: () => _retryLocation(vm),
+                child: _isFetchingLocation
+                    ? const SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          color: Color(0xFF00E5CC),
+                          strokeWidth: 2.5,
+                        ),
+                      )
+                    : Icon(
+                        Icons.my_location_rounded,
+                        color: vm.userLat != null ? const Color(0xFF00E5CC) : Colors.white38,
+                        size: 26,
+                      ),
+              ),
+            ),
+          ),
+
+          // 5. Emergency FAB
           Positioned(
             bottom: 110,
             right: 20,
