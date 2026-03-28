@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:provider/provider.dart';
-import 'viewmodels/hospital_viewmodel.dart';
-import 'viewmodels/auth_viewmodel.dart';
-import 'screens/map_home_screen.dart';
-import 'screens/home_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
+
+import 'viewmodels/auth_viewmodel.dart';
+import 'viewmodels/hospital_viewmodel.dart';
+import 'viewmodels/inventory_viewmodel.dart';
+import 'viewmodels/analytics_viewmodel.dart';
+import 'screens/role_selection_screen.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -17,11 +18,14 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => HospitalViewModel()),
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
+        ChangeNotifierProvider(create: (_) => InventoryViewModel()),
+        ChangeNotifierProvider(create: (_) => AnalyticsViewModel()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -65,7 +69,7 @@ class MyApp extends StatelessWidget {
             elevation: 0,
           ),
         ),
-        home: kIsWeb ? const HomeScreen() : const MapHomeScreen(),
+        home: const RoleSelectionScreen(),
       ),
     );
   }

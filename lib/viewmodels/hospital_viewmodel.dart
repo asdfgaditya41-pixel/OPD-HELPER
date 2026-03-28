@@ -227,8 +227,9 @@ class HospitalViewModel extends ChangeNotifier {
       score -= (dist * 10); // penalize distance heavily
       score += (predictedBeds * 2); // reward beds
       
-      if (confidence == ConfidenceLevel.High) score += 15;
-      else if (confidence == ConfidenceLevel.Low) score -= 15;
+      if (confidence == ConfidenceLevel.High) {
+        score += 15;
+      } else if (confidence == ConfidenceLevel.Low) score -= 15;
 
       scoredHospitals.add({'hospital': h, 'score': score, 'distance': dist});
     }

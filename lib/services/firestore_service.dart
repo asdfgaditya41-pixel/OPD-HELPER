@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/hospital.dart';
+import '../models/inventory_item.dart';
 
 class FirestoreService {
   // Singleton — one instance across the app, no repeated instantiation cost
@@ -45,6 +46,8 @@ class FirestoreService {
       // Step 2: Atomically increment aggregated fields — O(1), no loops, no reads
       transaction.update(hospitalRef, {
         'opd_queue': FieldValue.increment(1),
+        'queue.opd': FieldValue.increment(1),
+        'queue.last_updated': FieldValue.serverTimestamp(),
         'wait_time': FieldValue.increment(estimatedTime),
         'last_updated': FieldValue.serverTimestamp(),
       });
@@ -64,6 +67,8 @@ class FirestoreService {
       transaction.delete(patientRef);
       transaction.update(hospitalRef, {
         'opd_queue': FieldValue.increment(-1),
+        'queue.opd': FieldValue.increment(-1),
+        'queue.last_updated': FieldValue.serverTimestamp(),
         'wait_time': FieldValue.increment(-estimatedTime),
         'last_updated': FieldValue.serverTimestamp(),
       });
@@ -145,6 +150,7 @@ class FirestoreService {
     
     await hospitalRef.update({
       'beds_available': bedsAvailable,
+      'beds.available': bedsAvailable,
       'last_updated': FieldValue.serverTimestamp(),
       'no_beds_reports': 0, // Reset reports when hospital officially updates
     });
@@ -158,5 +164,103 @@ class FirestoreService {
     await hospitalRef.update({
       'no_beds_reports': FieldValue.increment(1),
     });
+  }
+
+  Future<void> updateBedsModule(
+    String hospitalId,
+    int totalBeds,
+    int availableBeds,
+  ) async {
+    final hospitalRef = _db.collection('hospitals').doc(hospitalId);
+
+    await hospitalRef.update({
+      'beds_total': totalBeds,
+      'beds_available': availableBeds,
+      'beds.total': totalBeds,
+      'beds.available': availableBeds,
+      'beds.last_updated': FieldValue.serverTimestamp(),
+      'last_updated': FieldValue.serverTimestamp(),
+      'no_beds_reports': 0,
+    });
+  }
+
+  Future<void> updateQueueModule(
+    String hospitalId,
+    int opdCount,
+    int emergencyCount,
+  ) async {
+    final hospitalRef = _db.collection('hospitals').doc(hospitalId);
+
+    await hospitalRef.update({
+      'opd_queue': opdCount,
+      'queue.opd': opdCount,
+      'queue.emergency': emergencyCount,
+      'queue.last_updated': FieldValue.serverTimestamp(),
+      'last_updated': FieldValue.serverTimestamp(),
+    });
+  }
+
+  Stream<List<InventoryItem>> inventoryStream(String hospitalId) {
+    return _db
+        .collection('hospitals')
+        .doc(hospitalId)
+        .collection('inventory')
+        .orderBy('name')
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => InventoryItem.fromFirestore(doc.data(), doc.id))
+            .toList());
+  }
+
+  Stream<Hospital> watchHospital(String hospitalId) {
+    return _db
+        .collection('hospitals')
+        .doc(hospitalId)
+        .snapshots()
+        .map((snapshot) {
+      final data = snapshot.data();
+      if (data == null) {
+        throw StateError('Hospital not found');
+      }
+      return Hospital.fromFirestore(data, snapshot.id);
+    });
+  }
+
+  Future<void> upsertInventoryItem(
+    String hospitalId,
+    InventoryItem item,
+  ) async {
+    final collectionRef = _db
+        .collection('hospitals')
+        .doc(hospitalId)
+        .collection('inventory');
+
+    if (item.id.isEmpty) {
+      await collectionRef.add({
+        'name': item.name,
+        'stock': item.stock,
+        'threshold': item.threshold,
+        'last_updated': FieldValue.serverTimestamp(),
+      });
+    } else {
+      await collectionRef.doc(item.id).update({
+        'name': item.name,
+        'stock': item.stock,
+        'threshold': item.threshold,
+        'last_updated': FieldValue.serverTimestamp(),
+      });
+    }
+  }
+
+  Future<void> deleteInventoryItem(
+    String hospitalId,
+    String itemId,
+  ) async {
+    await _db
+        .collection('hospitals')
+        .doc(hospitalId)
+        .collection('inventory')
+        .doc(itemId)
+        .delete();
   }
 }
