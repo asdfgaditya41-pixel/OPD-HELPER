@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1007762784529",
+    "project_id": "hospital-app-aditya",
+    "storage_bucket": "hospital-app-aditya.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1007762784529:android:1eac1f82e6291044f2ccb0",
+        "android_client_info": {
+          "package_name": "com.example.hostpital_2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDszbXA4Z-CS8eo6wkWAyDbSi4kgdjE5Lk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
