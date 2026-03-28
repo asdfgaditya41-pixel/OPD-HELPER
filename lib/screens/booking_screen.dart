@@ -38,7 +38,9 @@ class _BookingScreenState extends State<BookingScreen> {
     if (user == null) {
       return const Scaffold(
         backgroundColor: Color(0xFF0A1A20),
-        body: Center(child: CircularProgressIndicator(color: Color(0xFF00E5CC))),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF00E5CC)),
+        ),
       );
     }
 
@@ -49,7 +51,10 @@ class _BookingScreenState extends State<BookingScreen> {
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text("Book Admission", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Book Admission",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -74,31 +79,48 @@ class _BookingScreenState extends State<BookingScreen> {
                           decoration: BoxDecoration(
                             color: Colors.redAccent.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.redAccent.withOpacity(0.4)),
+                            border: Border.all(
+                              color: Colors.redAccent.withOpacity(0.4),
+                            ),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.error_outline_rounded, color: Colors.redAccent),
+                              const Icon(
+                                Icons.error_outline_rounded,
+                                color: Colors.redAccent,
+                              ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: Text(vm.errorMessage!, style: const TextStyle(color: Colors.white)),
-                              )
+                                child: Text(
+                                  vm.errorMessage!,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              ),
                             ],
                           ),
                         ),
 
-                      const Text("Patient Details", style: TextStyle(color: Colors.white54, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      const Text(
+                        "Patient Details",
+                        style: TextStyle(
+                          color: Colors.white54,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                        ),
+                      ),
                       const SizedBox(height: 12),
-                      
+
                       _buildTextField(
                         label: "Patient Full Name",
                         initialValue: vm.patientName,
                         icon: Icons.person_rounded,
                         onChanged: vm.updateName,
-                        validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                        validator: (val) =>
+                            val == null || val.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 16),
-                      
+
                       Row(
                         children: [
                           Expanded(
@@ -107,28 +129,50 @@ class _BookingScreenState extends State<BookingScreen> {
                               initialValue: vm.age.toString(),
                               icon: Icons.cake_rounded,
                               keyboardType: TextInputType.number,
-                              onChanged: (val) => vm.updateAge(int.tryParse(val) ?? 0),
-                              validator: (val) => val == null || val.isEmpty || int.tryParse(val) == null ? 'Invalid' : null,
+                              onChanged: (val) =>
+                                  vm.updateAge(int.tryParse(val) ?? 0),
+                              validator: (val) =>
+                                  val == null ||
+                                      val.isEmpty ||
+                                      int.tryParse(val) == null
+                                  ? 'Invalid'
+                                  : null,
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.05),
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.white.withOpacity(0.1)),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.1),
+                                ),
                               ),
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton<String>(
                                   dropdownColor: const Color(0xFF122A34),
                                   value: vm.gender,
                                   isExpanded: true,
-                                  icon: const Icon(Icons.arrow_drop_down_rounded, color: Colors.white54),
-                                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                                  items: ['Male', 'Female', 'Other'].map((String value) {
-                                    return DropdownMenuItem<String>(value: value, child: Text(value));
+                                  icon: const Icon(
+                                    Icons.arrow_drop_down_rounded,
+                                    color: Colors.white54,
+                                  ),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                  items: ['Male', 'Female', 'Other'].map((
+                                    String value,
+                                  ) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
                                   }).toList(),
                                   onChanged: (newVal) {
                                     if (newVal != null) vm.updateGender(newVal);
@@ -147,58 +191,102 @@ class _BookingScreenState extends State<BookingScreen> {
                         icon: Icons.phone_rounded,
                         keyboardType: TextInputType.phone,
                         onChanged: vm.updateContact,
-                        validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                        validator: (val) =>
+                            val == null || val.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 32),
-                      
-                      const Text("Admission Motivation", style: TextStyle(color: Colors.white54, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1)),
+
+                      const Text(
+                        "Admission Motivation",
+                        style: TextStyle(
+                          color: Colors.white54,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                        ),
+                      ),
                       const SizedBox(height: 12),
-                      
+
                       _buildTextField(
                         label: "Symptoms or Reason for visit",
                         initialValue: vm.symptoms,
                         icon: Icons.medical_services_rounded,
                         onChanged: vm.updateSymptoms,
                         maxLines: 3,
-                        validator: (val) => val == null || val.isEmpty ? 'Required' : null,
+                        validator: (val) =>
+                            val == null || val.isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: 24),
 
                       // Emergency Switch
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
-                            colors: vm.isEmergency 
-                                ? [Colors.redAccent.withOpacity(0.2), Colors.redAccent.withOpacity(0.05)]
-                                : [Colors.white.withOpacity(0.05), Colors.white.withOpacity(0.02)],
+                            colors: vm.isEmergency
+                                ? [
+                                    Colors.redAccent.withOpacity(0.2),
+                                    Colors.redAccent.withOpacity(0.05),
+                                  ]
+                                : [
+                                    Colors.white.withOpacity(0.05),
+                                    Colors.white.withOpacity(0.02),
+                                  ],
                           ),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: vm.isEmergency ? Colors.redAccent.withOpacity(0.5) : Colors.white.withOpacity(0.1)),
+                          border: Border.all(
+                            color: vm.isEmergency
+                                ? Colors.redAccent.withOpacity(0.5)
+                                : Colors.white.withOpacity(0.1),
+                          ),
                         ),
                         child: Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: vm.isEmergency ? Colors.redAccent : Colors.white10,
+                                color: vm.isEmergency
+                                    ? Colors.redAccent
+                                    : Colors.white10,
                                 shape: BoxShape.circle,
                               ),
-                              child: Icon(Icons.warning_rounded, color: vm.isEmergency ? Colors.white : Colors.white54, size: 20),
+                              child: Icon(
+                                Icons.warning_rounded,
+                                color: vm.isEmergency
+                                    ? Colors.white
+                                    : Colors.white54,
+                                size: 20,
+                              ),
                             ),
                             const SizedBox(width: 16),
                             const Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text("Medical Emergency", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                                  Text("Prioritizes ICU allocation natively", style: TextStyle(color: Colors.white54, fontSize: 12)),
+                                  Text(
+                                    "Medical Emergency",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Text(
+                                    "Prioritizes ICU allocation natively",
+                                    style: TextStyle(
+                                      color: Colors.white54,
+                                      fontSize: 12,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ),
                             Switch(
                               value: vm.isEmergency,
-                              activeColor: Colors.redAccent,
+                              activeThumbColor: Colors.redAccent,
                               onChanged: vm.toggleEmergency,
                             ),
                           ],
@@ -207,46 +295,92 @@ class _BookingScreenState extends State<BookingScreen> {
                       const SizedBox(height: 24),
 
                       // Bed Preference Dropdown
-                      const Text("Preferred Bed Type", style: TextStyle(color: Colors.white54, fontSize: 13, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                      const Text(
+                        "Preferred Bed Type",
+                        style: TextStyle(
+                          color: Colors.white54,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 1,
+                        ),
+                      ),
                       const SizedBox(height: 12),
-                      
+
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
-                          color: vm.isEmergency ? Colors.white.withOpacity(0.02) : Colors.white.withOpacity(0.05),
+                          color: vm.isEmergency
+                              ? Colors.white.withOpacity(0.02)
+                              : Colors.white.withOpacity(0.05),
                           borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: Colors.white.withOpacity(0.1)),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                          ),
                         ),
                         child: DropdownButtonHideUnderline(
                           child: DropdownButton<String>(
                             dropdownColor: const Color(0xFF122A34),
                             value: vm.preferredBedType,
                             isExpanded: true,
-                            icon: const Icon(Icons.bed_rounded, color: Colors.white54),
-                            style: TextStyle(color: vm.isEmergency ? Colors.white54 : Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-                            items: ['General', 'ICU', 'Private'].map((String value) {
-                              return DropdownMenuItem<String>(value: value, child: Text(value));
+                            icon: const Icon(
+                              Icons.bed_rounded,
+                              color: Colors.white54,
+                            ),
+                            style: TextStyle(
+                              color: vm.isEmergency
+                                  ? Colors.white54
+                                  : Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            items: ['General', 'ICU', 'Private'].map((
+                              String value,
+                            ) {
+                              return DropdownMenuItem<String>(
+                                value: value,
+                                child: Text(value),
+                              );
                             }).toList(),
-                            onChanged: vm.isEmergency ? null : (newVal) { // Lock to ICU naturally via VM if emergency, but technically let them change it if they undo emergency
-                              if (newVal != null) vm.updateBedType(newVal);
-                            },
+                            onChanged: vm.isEmergency
+                                ? null
+                                : (newVal) {
+                                    // Lock to ICU naturally via VM if emergency, but technically let them change it if they undo emergency
+                                    if (newVal != null)
+                                      vm.updateBedType(newVal);
+                                  },
                           ),
                         ),
                       ),
                       if (vm.isEmergency)
                         const Padding(
                           padding: EdgeInsets.only(top: 8, left: 4),
-                          child: Text("Overridden to ICU priority due to emergency.", style: TextStyle(color: Colors.redAccent, fontSize: 12, fontStyle: FontStyle.italic)),
+                          child: Text(
+                            "Overridden to ICU priority due to emergency.",
+                            style: TextStyle(
+                              color: Colors.redAccent,
+                              fontSize: 12,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
                         ),
-                      
+
                       const SizedBox(height: 48),
 
                       Container(
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(colors: [Color(0xFF00BFA5), Color(0xFF00E5CC)]),
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF00BFA5), Color(0xFF00E5CC)],
+                          ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
-                            BoxShadow(color: const Color(0xFF00BFA5).withOpacity(0.4), blurRadius: 12, offset: const Offset(0, 4)),
+                            BoxShadow(
+                              color: const Color(0xFF00BFA5).withOpacity(0.4),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
                           ],
                         ),
                         child: ElevatedButton(
@@ -255,18 +389,34 @@ class _BookingScreenState extends State<BookingScreen> {
                             shadowColor: Colors.transparent,
                             foregroundColor: Colors.black,
                             padding: const EdgeInsets.symmetric(vertical: 18),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
-                          onPressed: vm.isBooking 
-                              ? null 
+                          onPressed: vm.isBooking
+                              ? null
                               : () {
-                                  if (_formKey.currentState?.validate() ?? false) {
+                                  if (_formKey.currentState?.validate() ??
+                                      false) {
                                     vm.submitBooking(user.id, widget.hospital);
                                   }
                                 },
                           child: vm.isBooking
-                              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2.5))
-                              : const Text("Confirm Booking & Allocate Bed", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.black,
+                                    strokeWidth: 2.5,
+                                  ),
+                                )
+                              : const Text(
+                                  "Confirm Booking & Allocate Bed",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 16,
+                                  ),
+                                ),
                         ),
                       ),
                       const SizedBox(height: 32),
@@ -328,17 +478,37 @@ class _BookingScreenState extends State<BookingScreen> {
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: const Color(0xFF00BFA5).withOpacity(0.15), shape: BoxShape.circle),
-            child: const Icon(Icons.local_hospital_rounded, color: Color(0xFF00E5CC), size: 28),
+            decoration: BoxDecoration(
+              color: const Color(0xFF00BFA5).withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.local_hospital_rounded,
+              color: Color(0xFF00E5CC),
+              size: 28,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text("Destination Facility", style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 12)),
+                Text(
+                  "Destination Facility",
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.5),
+                    fontSize: 12,
+                  ),
+                ),
                 const SizedBox(height: 4),
-                Text(widget.hospital.name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(
+                  widget.hospital.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ),
@@ -360,12 +530,20 @@ class _BookingScreenState extends State<BookingScreen> {
                 color: const Color(0xFF00E676).withOpacity(0.15),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check_circle_rounded, color: Color(0xFF00E676), size: 80),
+              child: const Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF00E676),
+                size: 80,
+              ),
             ),
             const SizedBox(height: 32),
             const Text(
               "Bed Allocated!",
-              style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900),
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.w900,
+              ),
             ),
             const SizedBox(height: 24),
             Container(
@@ -373,25 +551,48 @@ class _BookingScreenState extends State<BookingScreen> {
               decoration: BoxDecoration(
                 color: const Color(0xFF122A34),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFF00E676).withOpacity(0.3), width: 2),
+                border: Border.all(
+                  color: const Color(0xFF00E676).withOpacity(0.3),
+                  width: 2,
+                ),
               ),
               child: Column(
                 children: [
-                  const Text("ASSIGNMENT", style: TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                  const Text(
+                    "ASSIGNMENT",
+                    style: TextStyle(
+                      color: Colors.white54,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 2,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   Text(
                     "Room ${vm.assignedRoom ?? 'TBD'}",
-                    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.single_bed_rounded, color: Color(0xFF00E676), size: 20),
+                      const Icon(
+                        Icons.single_bed_rounded,
+                        color: Color(0xFF00E676),
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         (vm.assignedBed ?? 'N/A').toUpperCase(),
-                        style: const TextStyle(color: Color(0xFF00E676), fontSize: 20, fontWeight: FontWeight.w900),
+                        style: const TextStyle(
+                          color: Color(0xFF00E676),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ],
                   ),
@@ -402,7 +603,10 @@ class _BookingScreenState extends State<BookingScreen> {
             Text(
               "Your appointment is confirmed. Please arrive swiftly.",
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 16),
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.7),
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 48),
             SizedBox(
@@ -412,13 +616,18 @@ class _BookingScreenState extends State<BookingScreen> {
                   backgroundColor: Colors.white.withOpacity(0.1),
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 onPressed: () {
                   Navigator.pop(context);
                   Navigator.pop(context);
                 },
-                child: const Text("Return to Map", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+                child: const Text(
+                  "Return to Map",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                ),
               ),
             ),
           ],

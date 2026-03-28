@@ -92,7 +92,11 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               ],
             ),
             child: IconButton(
-              icon: const Icon(Icons.phone_rounded, color: Colors.white, size: 20),
+              icon: const Icon(
+                Icons.phone_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 14),
               onPressed: () async {
                 final url = Uri.parse('tel:${h.contactNumber}');
@@ -134,7 +138,10 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 1. Prediction Card
-                _buildAnimatedChild(0, _buildPredictionCard(expectedTimeString, bestTime)),
+                _buildAnimatedChild(
+                  0,
+                  _buildPredictionCard(expectedTimeString, bestTime),
+                ),
                 const SizedBox(height: 16),
 
                 // 2. Bed Availability Card
@@ -142,7 +149,15 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                 const SizedBox(height: 16),
 
                 // 3. Stats Grid (3 items)
-                _buildAnimatedChild(2, _buildStatsGrid(totalWaitTimeString, loadText, loadColor, h.opdQueue)),
+                _buildAnimatedChild(
+                  2,
+                  _buildStatsGrid(
+                    totalWaitTimeString,
+                    loadText,
+                    loadColor,
+                    h.opdQueue,
+                  ),
+                ),
                 const SizedBox(height: 20),
 
                 // 4. Report Action
@@ -150,39 +165,60 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                 const SizedBox(height: 28),
 
                 // 5. Chart Title
-                _buildAnimatedChild(4, Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF64B5F6).withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(10),
+                _buildAnimatedChild(
+                  4,
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF64B5F6).withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.insights_rounded,
+                          color: Color(0xFF64B5F6),
+                          size: 20,
+                        ),
                       ),
-                      child: const Icon(Icons.insights_rounded, color: Color(0xFF64B5F6), size: 20),
-                    ),
-                    const SizedBox(width: 12),
-                    const Text(
-                      "Wait Time Trend",
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.06),
-                        borderRadius: BorderRadius.circular(10),
+                      const SizedBox(width: 12),
+                      const Text(
+                        "Wait Time Trend",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                      child: Text(
-                        "Past 6 Hours",
-                        style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 12, fontWeight: FontWeight.w500),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.06),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          "Past 6 Hours",
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.4),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
-                )),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 16),
 
                 // 6. Chart
-                _buildAnimatedChild(5, _buildChartCard(vm.generateHistoricalWaitTimes(h), loadColor)),
+                _buildAnimatedChild(
+                  5,
+                  _buildChartCard(vm.generateHistoricalWaitTimes(h), loadColor),
+                ),
                 const SizedBox(height: 32),
 
                 // 7. Book Appointment
@@ -201,7 +237,11 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     final animation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(
         parent: _animController,
-        curve: Interval(delay, (delay + 0.4).clamp(0.0, 1.0), curve: Curves.easeOutCubic),
+        curve: Interval(
+          delay,
+          (delay + 0.4).clamp(0.0, 1.0),
+          curve: Curves.easeOutCubic,
+        ),
       ),
     );
 
@@ -230,7 +270,10 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFF00BFA5).withOpacity(0.25), width: 1.5),
+        border: Border.all(
+          color: const Color(0xFF00BFA5).withOpacity(0.25),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF00BFA5).withOpacity(0.08),
@@ -250,7 +293,11 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   color: const Color(0xFF00BFA5).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.batch_prediction_rounded, color: Color(0xFF00E5CC), size: 24),
+                child: const Icon(
+                  Icons.batch_prediction_rounded,
+                  color: Color(0xFF00E5CC),
+                  size: 24,
+                ),
               ),
               const SizedBox(width: 14),
               const Expanded(
@@ -313,7 +360,11 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.access_time_filled_rounded, color: Color(0xFF00E5CC), size: 16),
+                const Icon(
+                  Icons.access_time_filled_rounded,
+                  color: Color(0xFF00E5CC),
+                  size: 16,
+                ),
                 const SizedBox(width: 8),
                 Text(
                   "Best time: $bestTime",
@@ -331,14 +382,29 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     );
   }
 
-  Widget _buildStatsGrid(String waitTime, String loadText, Color loadColor, int queue) {
+  Widget _buildStatsGrid(
+    String waitTime,
+    String loadText,
+    Color loadColor,
+    int queue,
+  ) {
     return Row(
       children: [
-        _statCard("Wait Time", waitTime, Icons.hourglass_bottom_rounded, const Color(0xFFFFB74D)),
+        _statCard(
+          "Wait Time",
+          waitTime,
+          Icons.hourglass_bottom_rounded,
+          const Color(0xFFFFB74D),
+        ),
         const SizedBox(width: 10),
         _statCard("Load", loadText, Icons.speed_rounded, loadColor),
         const SizedBox(width: 10),
-        _statCard("Queue", "$queue", Icons.people_alt_rounded, const Color(0xFF64B5F6)),
+        _statCard(
+          "Queue",
+          "$queue",
+          Icons.people_alt_rounded,
+          const Color(0xFF64B5F6),
+        ),
       ],
     );
   }
@@ -379,7 +445,10 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: const Color(0xFF81C784).withOpacity(0.25), width: 1.5),
+        border: Border.all(
+          color: const Color(0xFF81C784).withOpacity(0.25),
+          width: 1.5,
+        ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF81C784).withOpacity(0.05),
@@ -399,7 +468,11 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   color: const Color(0xFF81C784).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.bed_rounded, color: Color(0xFF81C784), size: 22),
+                child: const Icon(
+                  Icons.bed_rounded,
+                  color: Color(0xFF81C784),
+                  size: 22,
+                ),
               ),
               const SizedBox(width: 12),
               const Text(
@@ -413,7 +486,10 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: confidenceColor.withOpacity(0.15),
                   borderRadius: BorderRadius.circular(12),
@@ -429,7 +505,10 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                         color: confidenceColor,
                         shape: BoxShape.circle,
                         boxShadow: [
-                          BoxShadow(color: confidenceColor.withOpacity(0.6), blurRadius: 4),
+                          BoxShadow(
+                            color: confidenceColor.withOpacity(0.6),
+                            blurRadius: 4,
+                          ),
                         ],
                       ),
                     ),
@@ -458,14 +537,18 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   fontSize: 42,
                   fontWeight: FontWeight.w900,
                   height: 1,
-                  decoration: h.bedsAvailable == 0 && !isPredicted ? TextDecoration.lineThrough : null,
+                  decoration: h.bedsAvailable == 0 && !isPredicted
+                      ? TextDecoration.lineThrough
+                      : null,
                 ),
               ),
               const SizedBox(width: 12),
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Text(
-                  isPredicted ? "estimated beds available" : "beds currently available",
+                  isPredicted
+                      ? "estimated beds available"
+                      : "beds currently available",
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.6),
                     fontSize: 14,
@@ -479,16 +562,22 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           StreamBuilder<List<HospitalRoom>>(
             stream: FirestoreService().watchHospitalRooms(h.id),
             builder: (context, snapshot) {
-              if (!snapshot.hasData || snapshot.data!.isEmpty) return const SizedBox.shrink();
-              
+              if (!snapshot.hasData || snapshot.data!.isEmpty)
+                return const SizedBox.shrink();
+
               final rooms = snapshot.data!;
               int icu = 0;
               int gen = 0;
-              
+
               for (var r in rooms) {
-                int count = r.beds.values.where((b) => b.status == 'available').length;
-                if (r.type == 'ICU') icu += count;
-                else gen += count;
+                int count = r.beds.values
+                    .where((b) => b.status == 'available')
+                    .length;
+                if (r.type == 'ICU') {
+                  icu += count;
+                } else {
+                  gen += count;
+                }
               }
 
               if (icu == 0 && gen == 0) return const SizedBox.shrink();
@@ -496,7 +585,9 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               // Build Categorized Room Lists
               Map<String, List<HospitalRoom>> categorizedRooms = {};
               for (var r in rooms) {
-                int count = r.beds.values.where((b) => b.status == 'available').length;
+                int count = r.beds.values
+                    .where((b) => b.status == 'available')
+                    .length;
                 if (count > 0) {
                   categorizedRooms.putIfAbsent(r.type, () => []).add(r);
                 }
@@ -511,16 +602,48 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                       children: [
                         if (icu > 0)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
                             margin: const EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(color: Colors.redAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.redAccent.withOpacity(0.3))),
-                            child: Text("$icu ICU Available", style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: Colors.redAccent.withOpacity(0.3),
+                              ),
+                            ),
+                            child: Text(
+                              "$icu ICU Available",
+                              style: const TextStyle(
+                                color: Colors.redAccent,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         if (gen > 0)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(color: const Color(0xFF00BFA5).withOpacity(0.2), borderRadius: BorderRadius.circular(8), border: Border.all(color: const Color(0xFF00BFA5).withOpacity(0.3))),
-                            child: Text("$gen General Available", style: const TextStyle(color: Color(0xFF00BFA5), fontSize: 12, fontWeight: FontWeight.bold)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF00BFA5).withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: const Color(0xFF00BFA5).withOpacity(0.3),
+                              ),
+                            ),
+                            child: Text(
+                              "$gen General Available",
+                              style: const TextStyle(
+                                color: Color(0xFF00BFA5),
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                       ],
                     ),
@@ -530,7 +653,9 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                       List<HospitalRoom> catRooms = entry.value;
                       bool showMore = catRooms.length > 3;
                       int extra = catRooms.length - 3;
-                      List<HospitalRoom> displayRooms = catRooms.take(3).toList();
+                      List<HospitalRoom> displayRooms = catRooms
+                          .take(3)
+                          .toList();
 
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
@@ -539,26 +664,44 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                           children: [
                             Text(
                               category,
-                              style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.bold),
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.7),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             ...displayRooms.map((r) {
-                              int availableBeds = r.beds.values.where((b) => b.status == 'available').length;
+                              int availableBeds = r.beds.values
+                                  .where((b) => b.status == 'available')
+                                  .length;
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 4),
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.meeting_room_rounded, color: Colors.white30, size: 14),
+                                    const Icon(
+                                      Icons.meeting_room_rounded,
+                                      color: Colors.white30,
+                                      size: 14,
+                                    ),
                                     const SizedBox(width: 8),
                                     Text(
                                       "Room ${r.roomNumber}",
-                                      style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                     const Spacer(),
                                     Text(
-                                      availableBeds == 1 ? "1 Bed" : "$availableBeds Beds",
+                                      availableBeds == 1
+                                          ? "1 Bed"
+                                          : "$availableBeds Beds",
                                       style: TextStyle(
-                                        color: category == 'ICU' ? Colors.redAccent : const Color(0xFF00BFA5),
+                                        color: category == 'ICU'
+                                            ? Colors.redAccent
+                                            : const Color(0xFF00BFA5),
                                         fontSize: 13,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -572,7 +715,11 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                                 padding: const EdgeInsets.only(top: 2),
                                 child: Text(
                                   "+ $extra more $category room${extra > 1 ? 's' : ''}",
-                                  style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 12, fontStyle: FontStyle.italic),
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.4),
+                                    fontSize: 12,
+                                    fontStyle: FontStyle.italic,
+                                  ),
                                 ),
                               ),
                           ],
@@ -624,7 +771,10 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                     setState(() => _isReporting = false);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('Thank you! Beds reported as unavailable.', style: TextStyle(color: Colors.white)),
+                        content: const Text(
+                          'Thank you! Beds reported as unavailable.',
+                          style: TextStyle(color: Colors.white),
+                        ),
                         backgroundColor: const Color(0xFF122A34),
                       ),
                     );
@@ -639,10 +789,17 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   const SizedBox(
                     width: 18,
                     height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.orangeAccent),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.orangeAccent,
+                    ),
                   )
                 else
-                  const Icon(Icons.feedback_rounded, color: Colors.orangeAccent, size: 20),
+                  const Icon(
+                    Icons.feedback_rounded,
+                    color: Colors.orangeAccent,
+                    size: 20,
+                  ),
                 const SizedBox(width: 10),
                 Text(
                   _isReporting ? "Reporting..." : "Report: No beds available",
@@ -666,10 +823,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 6),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [
-              color.withOpacity(0.1),
-              color.withOpacity(0.03),
-            ],
+            colors: [color.withOpacity(0.1), color.withOpacity(0.03)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -751,15 +905,17 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            getDrawingHorizontalLine: (value) => FlLine(
-              color: Colors.white.withOpacity(0.05),
-              strokeWidth: 1,
-            ),
+            getDrawingHorizontalLine: (value) =>
+                FlLine(color: Colors.white.withOpacity(0.05), strokeWidth: 1),
           ),
           titlesData: FlTitlesData(
             show: true,
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -773,13 +929,25 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   );
                   String text;
                   switch (value.toInt()) {
-                    case 0: text = '5h ago'; break;
-                    case 2: text = '3h ago'; break;
-                    case 4: text = '1h ago'; break;
-                    case 5: text = 'Now'; break;
-                    default: text = '';
+                    case 0:
+                      text = '5h ago';
+                      break;
+                    case 2:
+                      text = '3h ago';
+                      break;
+                    case 4:
+                      text = '1h ago';
+                      break;
+                    case 5:
+                      text = 'Now';
+                      break;
+                    default:
+                      text = '';
                   }
-                  return SideTitleWidget(axisSide: meta.axisSide, child: Text(text, style: style));
+                  return SideTitleWidget(
+                    axisSide: meta.axisSide,
+                    child: Text(text, style: style),
+                  );
                 },
               ),
             ),
@@ -789,7 +957,9 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                 interval: yInterval,
                 getTitlesWidget: (value, meta) {
                   // Ensure we don't draw an out-of-interval label that might overlap
-                  if (value % yInterval != 0 && value != maxYValue && value != 0) {
+                  if (value % yInterval != 0 &&
+                      value != maxYValue &&
+                      value != 0) {
                     return const SizedBox.shrink();
                   }
                   return Text(
@@ -812,7 +982,10 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           maxY: maxYValue,
           lineBarsData: [
             LineChartBarData(
-              spots: List.generate(spots.length, (index) => FlSpot(index.toDouble(), spots[index])),
+              spots: List.generate(
+                spots.length,
+                (index) => FlSpot(index.toDouble(), spots[index]),
+              ),
               isCurved: true,
               gradient: LinearGradient(
                 colors: [primaryColor, primaryColor.withOpacity(0.6)],
@@ -821,12 +994,13 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               isStrokeCapRound: true,
               dotData: FlDotData(
                 show: true,
-                getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-                  radius: 4,
-                  color: const Color(0xFF0A1A20),
-                  strokeWidth: 2.5,
-                  strokeColor: primaryColor,
-                ),
+                getDotPainter: (spot, percent, barData, index) =>
+                    FlDotCirclePainter(
+                      radius: 4,
+                      color: const Color(0xFF0A1A20),
+                      strokeWidth: 2.5,
+                      strokeColor: primaryColor,
+                    ),
               ),
               belowBarData: BarAreaData(
                 show: true,
@@ -845,7 +1019,10 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             touchTooltipData: LineTouchTooltipData(
               getTooltipColor: (_) => const Color(0xFF1E3C48),
               tooltipRoundedRadius: 12,
-              tooltipPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              tooltipPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
               getTooltipItems: (touchedSpots) {
                 return touchedSpots.map((spot) {
                   return LineTooltipItem(
@@ -875,7 +1052,12 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
       builder: (_) => AuthOptionsBottomSheet(
         onAuthenticated: () {
           // Once authenticated via sheet, proceed to booking seamlessly
-          Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(hospital: widget.hospital)));
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => BookingScreen(hospital: widget.hospital),
+            ),
+          );
         },
       ),
     );
@@ -889,19 +1071,31 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             context: context,
             builder: (context) => AlertDialog(
               backgroundColor: const Color(0xFF122A34),
-              title: const Text("Account", style: TextStyle(color: Colors.white)),
-              content: Text("Logged in as ${authVm.appUser?.name ?? authVm.appUser?.email}", style: const TextStyle(color: Colors.white70)),
+              title: const Text(
+                "Account",
+                style: TextStyle(color: Colors.white),
+              ),
+              content: Text(
+                "Logged in as ${authVm.appUser?.name ?? authVm.appUser?.email}",
+                style: const TextStyle(color: Colors.white70),
+              ),
               actions: [
                 TextButton(
                   onPressed: () {
                     authVm.signOut();
                     Navigator.pop(context);
                   },
-                  child: const Text("Sign Out", style: TextStyle(color: Colors.redAccent)),
+                  child: const Text(
+                    "Sign Out",
+                    style: TextStyle(color: Colors.redAccent),
+                  ),
                 ),
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Close", style: TextStyle(color: Colors.white)),
+                  child: const Text(
+                    "Close",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             ),
@@ -920,8 +1114,22 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
         child: ClipOval(
           child: authVm.isLoggedIn
               ? (authVm.appUser?.photoUrl != null
-                  ? Image.network(authVm.appUser!.photoUrl!, fit: BoxFit.cover, errorBuilder: (c, e, s) => _buildFallbackIcon())
-                  : Center(child: Text(authVm.appUser?.name.isNotEmpty == true ? authVm.appUser!.name[0].toUpperCase() : '?', style: const TextStyle(color: Color(0xFF00E5CC), fontWeight: FontWeight.bold))))
+                    ? Image.network(
+                        authVm.appUser!.photoUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (c, e, s) => _buildFallbackIcon(),
+                      )
+                    : Center(
+                        child: Text(
+                          authVm.appUser?.name.isNotEmpty == true
+                              ? authVm.appUser!.name[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            color: Color(0xFF00E5CC),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ))
               : _buildFallbackIcon(),
         ),
       ),
@@ -931,7 +1139,12 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   Widget _buildFallbackIcon() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
-      child: Image.network("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/120px-Google_%22G%22_logo.svg.png", fit: BoxFit.contain, errorBuilder: (c, e, s) => const Icon(Icons.person_rounded, color: Colors.white, size: 20)),
+      child: Image.network(
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/120px-Google_%22G%22_logo.svg.png",
+        fit: BoxFit.contain,
+        errorBuilder: (c, e, s) =>
+            const Icon(Icons.person_rounded, color: Colors.white, size: 20),
+      ),
     );
   }
 
@@ -959,11 +1172,16 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           shadowColor: Colors.transparent,
           foregroundColor: Colors.black,
           padding: const EdgeInsets.symmetric(vertical: 18),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
         ),
         onPressed: () {
           if (authVm.isLoggedIn) {
-            Navigator.push(context, MaterialPageRoute(builder: (_) => BookingScreen(hospital: h)));
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => BookingScreen(hospital: h)),
+            );
           } else {
             _showAuthSheet();
           }

@@ -379,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             Icon(Icons.local_hospital_rounded, color: Color(0xFF00E5CC), size: 26),
             SizedBox(width: 10),
             Text(
-              "OPD Helper",
+            "City Pulse",
               style: TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 22,

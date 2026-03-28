@@ -70,58 +70,112 @@ void main() {
   group('Hospital Scoring Algorithm', () {
     test('closer hospital with equal beds ranks higher', () {
       final near = _makeHospital(
-        id: 'h1', name: 'Near', waitTime: 30,
-        bedsAvailable: 5, opdQueue: 10, lat: 28.57, lng: 77.21,
+        id: 'h1',
+        name: 'Near',
+        waitTime: 30,
+        bedsAvailable: 5,
+        opdQueue: 10,
+        lat: 28.57,
+        lng: 77.21,
       );
       final far = _makeHospital(
-        id: 'h2', name: 'Far', waitTime: 30,
-        bedsAvailable: 5, opdQueue: 10, lat: 28.70, lng: 77.40,
+        id: 'h2',
+        name: 'Far',
+        waitTime: 30,
+        bedsAvailable: 5,
+        opdQueue: 10,
+        lat: 28.70,
+        lng: 77.40,
       );
-      expect(_score(near, userLat, userLng), greaterThan(_score(far, userLat, userLng)));
+      expect(
+        _score(near, userLat, userLng),
+        greaterThan(_score(far, userLat, userLng)),
+      );
     });
 
     test('hospital with more beds ranks higher at same distance', () {
       final moreBeds = _makeHospital(
-        id: 'h3', name: 'MoreBeds', waitTime: 30,
-        bedsAvailable: 20, opdQueue: 10, lat: 28.57, lng: 77.21,
+        id: 'h3',
+        name: 'MoreBeds',
+        waitTime: 30,
+        bedsAvailable: 20,
+        opdQueue: 10,
+        lat: 28.57,
+        lng: 77.21,
       );
       final lessBeds = _makeHospital(
-        id: 'h4', name: 'LessBeds', waitTime: 30,
-        bedsAvailable: 2, opdQueue: 10, lat: 28.57, lng: 77.21,
+        id: 'h4',
+        name: 'LessBeds',
+        waitTime: 30,
+        bedsAvailable: 2,
+        opdQueue: 10,
+        lat: 28.57,
+        lng: 77.21,
       );
-      expect(_score(moreBeds, userLat, userLng), greaterThan(_score(lessBeds, userLat, userLng)));
+      expect(
+        _score(moreBeds, userLat, userLng),
+        greaterThan(_score(lessBeds, userLat, userLng)),
+      );
     });
 
     test('stale data (> 120 min) heavily penalizes score', () {
       final freshHosp = _makeHospital(
-        id: 'h5', name: 'Fresh', waitTime: 50, bedsAvailable: 5,
-        opdQueue: 20, lat: 28.57, lng: 77.21,
+        id: 'h5',
+        name: 'Fresh',
+        waitTime: 50,
+        bedsAvailable: 5,
+        opdQueue: 20,
+        lat: 28.57,
+        lng: 77.21,
         lastUpdated: DateTime.now().subtract(const Duration(minutes: 10)),
       );
       final staleHosp = _makeHospital(
-        id: 'h6', name: 'Stale', waitTime: 50, bedsAvailable: 5,
-        opdQueue: 20, lat: 28.57, lng: 77.21,
+        id: 'h6',
+        name: 'Stale',
+        waitTime: 50,
+        bedsAvailable: 5,
+        opdQueue: 20,
+        lat: 28.57,
+        lng: 77.21,
         lastUpdated: DateTime.now().subtract(const Duration(hours: 5)),
       );
-      expect(_score(freshHosp, userLat, userLng), greaterThan(_score(staleHosp, userLat, userLng)));
+      expect(
+        _score(freshHosp, userLat, userLng),
+        greaterThan(_score(staleHosp, userLat, userLng)),
+      );
     });
 
     test('hospital with 3+ noBedsReports has score reduced', () {
       final trustedHosp = _makeHospital(
-        id: 'h7', name: 'Trusted', waitTime: 30, bedsAvailable: 5,
-        opdQueue: 10, lat: 28.57, lng: 77.21, noBedsReports: 0,
+        id: 'h7',
+        name: 'Trusted',
+        waitTime: 30,
+        bedsAvailable: 5,
+        opdQueue: 10,
+        lat: 28.57,
+        lng: 77.21,
+        noBedsReports: 0,
       );
       final reportedHosp = _makeHospital(
-        id: 'h8', name: 'FlaggedNobed', waitTime: 30, bedsAvailable: 5,
-        opdQueue: 10, lat: 28.57, lng: 77.21, noBedsReports: 3,
+        id: 'h8',
+        name: 'FlaggedNobed',
+        waitTime: 30,
+        bedsAvailable: 5,
+        opdQueue: 10,
+        lat: 28.57,
+        lng: 77.21,
+        noBedsReports: 3,
       );
-      expect(_score(trustedHosp, userLat, userLng), greaterThan(_score(reportedHosp, userLat, userLng)));
+      expect(
+        _score(trustedHosp, userLat, userLng),
+        greaterThan(_score(reportedHosp, userLat, userLng)),
+      );
     });
   });
 
   group('Bed Allocation Eligibility Logic', () {
     // Mirror the core check from FirestoreService.allocateBedAndBookAppointment
-    bool _isBedEligible(Map<String, dynamic> bedData) {
+    bool isBedEligible(Map<String, dynamic> bedData) {
       final status = bedData['status'];
       if (status != 'available') return false;
       final lastUpdated = bedData['last_updated'] as DateTime?;
@@ -135,7 +189,7 @@ void main() {
         'status': 'available',
         'last_updated': DateTime.now().subtract(const Duration(minutes: 5)),
       };
-      expect(_isBedEligible(bed), isTrue);
+      expect(isBedEligible(bed), isTrue);
     });
 
     test('occupied bed is not eligible', () {
@@ -143,7 +197,7 @@ void main() {
         'status': 'occupied',
         'last_updated': DateTime.now().subtract(const Duration(minutes: 5)),
       };
-      expect(_isBedEligible(bed), isFalse);
+      expect(isBedEligible(bed), isFalse);
     });
 
     test('available bed with stale timestamp (> 30 min) is not eligible', () {
@@ -151,15 +205,12 @@ void main() {
         'status': 'available',
         'last_updated': DateTime.now().subtract(const Duration(minutes: 45)),
       };
-      expect(_isBedEligible(bed), isFalse);
+      expect(isBedEligible(bed), isFalse);
     });
 
     test('available bed with no timestamp (legacy) is still eligible', () {
-      final bed = {
-        'status': 'available',
-        'last_updated': null,
-      };
-      expect(_isBedEligible(bed), isTrue);
+      final bed = {'status': 'available', 'last_updated': null};
+      expect(isBedEligible(bed), isTrue);
     });
 
     test('IoT bed (source=iot) eligible when fresh', () {
@@ -168,7 +219,7 @@ void main() {
         'source': 'iot',
         'last_updated': DateTime.now().subtract(const Duration(minutes: 2)),
       };
-      expect(_isBedEligible(bed), isTrue);
+      expect(isBedEligible(bed), isTrue);
     });
 
     test('IoT bed stale (> 30 min) is not eligible', () {
@@ -177,7 +228,7 @@ void main() {
         'source': 'iot',
         'last_updated': DateTime.now().subtract(const Duration(minutes: 60)),
       };
-      expect(_isBedEligible(bed), isFalse);
+      expect(isBedEligible(bed), isFalse);
     });
   });
 }

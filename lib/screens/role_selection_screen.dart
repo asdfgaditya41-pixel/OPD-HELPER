@@ -25,9 +25,16 @@ class RoleSelectionScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 12),
+                Center(
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    height: 100,
+                    errorBuilder: (context, error, stackTrace) => const SizedBox(height: 100),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 const Text(
-                  'Welcome to OPD Helper',
+                  'Welcome to City Pulse',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 26,

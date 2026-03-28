@@ -6,7 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 ///
 /// Mimics the behavior of real ESP32 sensors for development & testing.
 /// Fires Firestore writes that are structurally identical to what a
-/// real IoT device would send through the Cloud Function.
+/// real Bed Occupancy B.O. device would send through the Cloud Function.
 ///
 /// Includes hardware debounce protection:
 /// - Ignores bed updates within [_throttleMs] of the last write for that bed
@@ -42,7 +42,7 @@ class IoTSimulatorService {
       await _simulateBedUpdate(hospitalId);
     });
     _timers.add(timer);
-    print('[IoT-SIM] Bed simulation started for $hospitalId (every ${intervalSec}s)');
+    print('[B.O.-SIM] Bed simulation started for $hospitalId (every ${intervalSec}s)');
   }
 
   /// Simulates a moving ambulance updating its GPS every [intervalSec] seconds.
@@ -56,7 +56,7 @@ class IoTSimulatorService {
       await _simulateAmbulanceUpdate(hospitalId, ambulanceId, lat, lng);
     });
     _timers.add(timer);
-    print('[IoT-SIM] Ambulance simulation started for $ambulanceId');
+    print('[B.O.-SIM] Ambulance simulation started for $ambulanceId');
   }
 
   /// Simulates sensor-driven inventory level changes.
@@ -65,14 +65,14 @@ class IoTSimulatorService {
       await _simulateEquipmentUpdate(hospitalId, itemId);
     });
     _timers.add(timer);
-    print('[IoT-SIM] Equipment simulation started for item $itemId');
+    print('[B.O.-SIM] Equipment simulation started for item $itemId');
   }
 
   void stopAll() {
     for (final t in _timers) t.cancel();
     _timers.clear();
     _lastWriteTime.clear();
-    print('[IoT-SIM] All simulations stopped.');
+    print('[B.O.-SIM] All simulations stopped.');
   }
 
   // ─────────────────── PRIVATE HELPERS ───────────────────
@@ -87,7 +87,7 @@ class IoTSimulatorService {
           .get();
 
       if (roomsSnap.docs.isEmpty) {
-        print('[IoT-SIM] No rooms found — seed rooms first.');
+        print('[B.O.-SIM] No rooms found — seed rooms first.');
         return;
       }
 
@@ -101,7 +101,7 @@ class IoTSimulatorService {
 
       // Debounce guard — skip if we just wrote this bed
       if (_isThrottled(throttleKey)) {
-        print('[IoT-SIM] Throttled — skipping $throttleKey');
+        print('[B.O.-SIM] Throttled — skipping $throttleKey');
         return;
       }
 
@@ -129,9 +129,9 @@ class IoTSimulatorService {
 
       await batch.commit();
       _markWritten(throttleKey);
-      print('[IoT-SIM] Bed $bedId in Room ${roomDoc.id} → $newStatus');
+      print('[B.O.-SIM] Bed $bedId in Room ${roomDoc.id} → $newStatus');
     } catch (e) {
-      print('[IoT-SIM] Bed simulation error: $e');
+      print('[B.O.-SIM] Bed simulation error: $e');
     }
   }
 
@@ -152,9 +152,9 @@ class IoTSimulatorService {
         'source': 'iot',
         'device_id': 'esp32_gps_$ambulanceId',
       }, SetOptions(merge: true));
-      print('[IoT-SIM] Ambulance $ambulanceId → lat:$lat lng:$lng');
+      print('[B.O.-SIM] Ambulance $ambulanceId → lat:$lat lng:$lng');
     } catch (e) {
-      print('[IoT-SIM] Ambulance error: $e');
+      print('[B.O.-SIM] Ambulance error: $e');
     }
   }
 
@@ -173,9 +173,9 @@ class IoTSimulatorService {
         'source': 'iot',
         'last_updated': FieldValue.serverTimestamp(),
       });
-      print('[IoT-SIM] Equipment $itemId → ${level.toStringAsFixed(1)}% $status');
+      print('[B.O.-SIM] Equipment $itemId → ${level.toStringAsFixed(1)}% $status');
     } catch (e) {
-      print('[IoT-SIM] Equipment error: $e');
+      print('[B.O.-SIM] Equipment error: $e');
     }
   }
 }

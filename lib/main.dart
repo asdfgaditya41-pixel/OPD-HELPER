@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
-        title: 'OPD TRACKER',
+        title: 'City Pulse',
         theme: ThemeData(
           useMaterial3: true,
           brightness: Brightness.dark,

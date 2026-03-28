@@ -48,7 +48,7 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
               _simRunning = false;
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('🔴 IoT Simulator stopped.'),
+                  content: Text('🔴 Bed Occupancy B.O. Simulator stopped.'),
                   backgroundColor: Color(0xFF263238),
                 ),
               );
@@ -57,7 +57,7 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
               _simRunning = true;
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('🟢 IoT Simulator running — beds flipping every 15s!'),
+                  content: Text('🟢 Bed Occupancy B.O. Simulator running — beds flipping every 15s!'),
                   backgroundColor: Color(0xFF00796B),
                   duration: Duration(seconds: 3),
                 ),
@@ -68,7 +68,7 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
         backgroundColor: _simRunning ? Colors.redAccent : const Color(0xFF00BFA5),
         icon: Icon(_simRunning ? Icons.stop_rounded : Icons.sensors_rounded),
         label: Text(
-          _simRunning ? 'Stop IoT Sim' : 'Run IoT Sim',
+          _simRunning ? 'Stop B.O. Sim' : 'Run B.O. Sim',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -252,7 +252,7 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
                                               ],
                                             ),
                                           ),
-                                          // IoT source badge
+                                          // Bed Occupancy B.O. source badge
                                           if (isIot)
                                             Positioned(
                                               top: 4,
