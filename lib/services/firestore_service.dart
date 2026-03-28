@@ -81,10 +81,9 @@ class FirestoreService {
   //
   // Big-O: O(k) where k = hospitals in city, not O(n) for all hospitals
   // ─────────────────────────────────────────────────────────
-  Stream<List<Hospital>> getHospitalsByCity(String city) {
+  Stream<List<Hospital>> getAllHospitals() {
     return _db
         .collection('hospitals')
-        .where('city', isEqualTo: city)   // server-side filter — index required
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Hospital.fromFirestore(doc.data(), doc.id))

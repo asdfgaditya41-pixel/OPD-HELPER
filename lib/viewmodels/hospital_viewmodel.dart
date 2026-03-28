@@ -11,7 +11,6 @@ class HospitalViewModel extends ChangeNotifier {
   // ─────────────────────────────────────────────────────────
   List<Hospital> hospitals = [];
   bool isLoading = true;
-  String selectedCity = 'Delhi';
 
   double? userLat;
   double? userLng;
@@ -51,18 +50,8 @@ class HospitalViewModel extends ChangeNotifier {
   };
 
   // ─────────────────────────────────────────────────────────
-  // CITY CHANGE
-  // ─────────────────────────────────────────────────────────
-  void changeCity(String newCity) {
-    if (selectedCity == newCity) return; // guard: no-op if same city
-    selectedCity = newCity;
-    isLoading = true;
-    notifyListeners();
-    loadHospitals();
-  }
-
-  // ─────────────────────────────────────────────────────────
   // LOAD HOSPITALS
+  // ─────────────────────────────────────────────────────────
   // BEFORE: fetched ALL hospitals, then filtered in Dart → O(n) reads
   // AFTER:  Firestore .where('city') server-side filter → O(k) reads
   //         where k = hospitals in selected city only
@@ -72,7 +61,7 @@ class HospitalViewModel extends ChangeNotifier {
     _hospitalsSubscription?.cancel();
 
     _hospitalsSubscription = _service
-        .getHospitalsByCity(selectedCity) // server-side filter
+        .getAllHospitals()
         .listen((incoming) {
       hospitals = incoming;
       isLoading = false;
@@ -141,25 +130,31 @@ class HospitalViewModel extends ChangeNotifier {
   // LOCATION
   // ─────────────────────────────────────────────────────────
   Future<void> getUserLocation() async {
-    final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
+    try {
+      final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) return;
 
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) return;
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) return;
+      }
+      if (permission == LocationPermission.deniedForever) return;
+
+      final position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.medium,
+        timeLimit: const Duration(seconds: 5), // Prevent infinite hang
+      );
+      userLat = position.latitude;
+      userLng = position.longitude;
+
+      // Recompute best hospital now that location is available
+      _recomputeCache();
+      notifyListeners();
+    } catch (e) {
+      debugPrint("Error fetching location: $e");
+      // Fails silently, coordinates will just be null, which MapHomeScreen gracefully handles
     }
-    if (permission == LocationPermission.deniedForever) return;
-
-    final position = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.medium, // medium is fast + enough for hospital proximity
-    );
-    userLat = position.latitude;
-    userLng = position.longitude;
-
-    // Recompute best hospital now that location is available
-    _recomputeCache();
-    notifyListeners();
   }
 
   // ─────────────────────────────────────────────────────────

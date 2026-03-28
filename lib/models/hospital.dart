@@ -12,6 +12,7 @@ class Hospital {
   final String city;
   final String zone;
   final double loadIndex;
+  final String contactNumber;
 
   Hospital({
     required this.id,
@@ -27,6 +28,7 @@ class Hospital {
     required this.city,
     required this.zone,
     required this.loadIndex,
+    required this.contactNumber,
   });
 
   factory Hospital.fromFirestore(Map<String, dynamic> data, String id) {
@@ -43,6 +45,7 @@ class Hospital {
       city: data['city'] ?? 'Delhi',
       zone: data['zone'] ?? 'Unknown',
       loadIndex: (data['load_index'] ?? 0).toDouble(),
+      contactNumber: data['contact_number'] ?? '102',
       waitTime:
           data['wait_time'] ??
           (data['doctors'] == 0
