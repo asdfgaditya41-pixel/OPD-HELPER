@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from '/Users/sanyamdhawan/develop/projects/OPD-hELPER1/hospital-admin-web/src/components/Layout';
-import Dashboard from '/Users/sanyamdhawan/develop/projects/OPD-hELPER1/hospital-admin-web/src/pages/Dashboard';
-import Patients from '/Users/sanyamdhawan/develop/projects/OPD-hELPER1/hospital-admin-web/src/pages/Patients';
+import Layout from './components/Layout';
+import Dashboard from './pages/Dashboard';
+import Patients from './pages/Patients';
 
 function App() {
   return (
