@@ -562,8 +562,9 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           StreamBuilder<List<HospitalRoom>>(
             stream: FirestoreService().watchHospitalRooms(h.id),
             builder: (context, snapshot) {
-              if (!snapshot.hasData || snapshot.data!.isEmpty)
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
                 return const SizedBox.shrink();
+              }
 
               final rooms = snapshot.data!;
               int icu = 0;

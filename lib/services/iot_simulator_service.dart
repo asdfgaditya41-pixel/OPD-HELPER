@@ -69,7 +69,9 @@ class IoTSimulatorService {
   }
 
   void stopAll() {
-    for (final t in _timers) t.cancel();
+    for (final t in _timers) {
+      t.cancel();
+    }
     _timers.clear();
     _lastWriteTime.clear();
     print('[B.O.-SIM] All simulations stopped.');

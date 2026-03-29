@@ -348,8 +348,9 @@ class _BookingScreenState extends State<BookingScreen> {
                                 ? null
                                 : (newVal) {
                                     // Lock to ICU naturally via VM if emergency, but technically let them change it if they undo emergency
-                                    if (newVal != null)
+                                    if (newVal != null) {
                                       vm.updateBedType(newVal);
+                                    }
                                   },
                           ),
                         ),
