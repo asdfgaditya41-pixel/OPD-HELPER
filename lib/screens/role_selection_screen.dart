@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'hospital_selection_screen.dart';
 import 'map_home_screen.dart';
+import '../features/skin_checker/skin_checker_screen.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
@@ -76,6 +77,22 @@ class RoleSelectionScreen extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (_) => const HospitalSelectionScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+                _buildRoleCard(
+                  context: context,
+                  icon: Icons.biotech_rounded,
+                  title: 'Skin Disease Checker',
+                  subtitle: 'AI-powered skin analysis from a photo.',
+                  color: const Color(0xFFCE93D8),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SkinCheckerScreen(),
                       ),
                     );
                   },

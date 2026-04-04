@@ -53,6 +53,14 @@
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>NSCameraUsageDescription</key>
+	<string>City Pulse needs camera access to capture skin images for analysis.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>City Pulse needs photo library access to select skin images for analysis.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>City Pulse needs your location to find the nearest hospitals and show live wait times.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>City Pulse needs your location to find the nearest hospitals and show live wait times.</string>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
