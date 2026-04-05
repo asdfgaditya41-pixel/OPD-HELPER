@@ -81,10 +81,12 @@ class HospitalViewModel extends ChangeNotifier {
     _hospitalsSubscription = _service
         .getAllHospitals()
         .listen((incoming) {
+      debugPrint("🏥 Firestore returned ${incoming.length} hospitals");
       _allHospitals = incoming;
       _applyRadiusFilter();
       isLoading = false;
       _recomputeCache();
+      debugPrint("🏥 After filter: ${hospitals.length} hospitals (userLat=$userLat, userLng=$userLng)");
       notifyListeners();
     });
   }
@@ -97,10 +99,31 @@ class HospitalViewModel extends ChangeNotifier {
     if (userLat == null || userLng == null) {
       // Location not yet known — show all hospitals so map isn't empty
       hospitals = List.from(_allHospitals);
+      debugPrint("🏥 No user location, showing all ${hospitals.length} hospitals");
     } else {
-      hospitals = _allHospitals
-          .where((h) => _distanceKm(h.lat, h.lng) <= _radiusKm)
+      final filtered = _allHospitals
+          .where((h) {
+            final dist = _distanceKm(h.lat, h.lng);
+            return dist <= _radiusKm;
+          })
           .toList();
+
+      if (filtered.isEmpty && _allHospitals.isNotEmpty) {
+        // User is too far from ALL hospitals (e.g. iOS Simulator GPS in San Francisco).
+        // Show all hospitals and snap the user location to the hospital centroid.
+        hospitals = List.from(_allHospitals);
+        double sumLat = 0, sumLng = 0;
+        for (final h in _allHospitals) {
+          sumLat += h.lat;
+          sumLng += h.lng;
+        }
+        userLat = sumLat / _allHospitals.length;
+        userLng = sumLng / _allHospitals.length;
+        debugPrint("🏥 User too far from all hospitals — showing all ${hospitals.length} and snapping to centroid ($userLat, $userLng)");
+      } else {
+        hospitals = filtered;
+        debugPrint("🏥 Filtered to ${hospitals.length}/${_allHospitals.length} within ${_radiusKm}km");
+      }
     }
   }
 
@@ -260,34 +283,55 @@ class HospitalViewModel extends ChangeNotifier {
   // ─────────────────────────────────────────────────────────
   // LOCATION
   // ─────────────────────────────────────────────────────────
+  // Default fallback: Meerut, UP (the city this app targets)
+  static const double _fallbackLat = 28.9845;
+  static const double _fallbackLng = 77.7064;
+
   Future<void> getUserLocation() async {
     try {
       final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) return;
+      if (!serviceEnabled) {
+        debugPrint("Location services disabled — using fallback location");
+        _useFallbackLocation();
+        return;
+      }
 
       var permission = await Geolocator.checkPermission();
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) return;
+        if (permission == LocationPermission.denied) {
+          debugPrint("Location permission denied — using fallback location");
+          _useFallbackLocation();
+          return;
+        }
       }
-      if (permission == LocationPermission.deniedForever) return;
+      if (permission == LocationPermission.deniedForever) {
+        debugPrint("Location permission permanently denied — using fallback location");
+        _useFallbackLocation();
+        return;
+      }
 
       // Step 1: Try last known position first — instant, no GPS wait
-      Position? position = await Geolocator.getLastKnownPosition();
+      try {
+        Position? position = await Geolocator.getLastKnownPosition()
+            .timeout(const Duration(seconds: 5));
 
-      if (position != null) {
-        userLat = position.latitude;
-        userLng = position.longitude;
-        _applyRadiusFilter();
-        _recomputeCache();
-        notifyListeners();
+        if (position != null) {
+          userLat = position.latitude;
+          userLng = position.longitude;
+          _applyRadiusFilter();
+          _recomputeCache();
+          notifyListeners();
+        }
+      } catch (e) {
+        debugPrint("getLastKnownPosition failed: $e");
       }
 
-      // Step 2: Get a fresh accurate fix in background (20s timeout for real devices)
+      // Step 2: Get a fresh accurate fix (10s timeout — shorter to avoid dead channel)
       try {
         final freshPosition = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.medium,
-          timeLimit: const Duration(seconds: 20),
+          timeLimit: const Duration(seconds: 10),
         );
         userLat = freshPosition.latitude;
         userLng = freshPosition.longitude;
@@ -295,12 +339,28 @@ class HospitalViewModel extends ChangeNotifier {
         _recomputeCache();
         notifyListeners();
       } catch (timeoutError) {
-        // If fresh fix fails/times out, we already have last known position — that's fine
-        debugPrint("Fresh GPS fix timed out, using last known: $timeoutError");
+        debugPrint("Fresh GPS fix failed: $timeoutError");
+        // If we still don't have any location, use fallback
+        if (userLat == null || userLng == null) {
+          _useFallbackLocation();
+        }
       }
     } catch (e) {
       debugPrint("Location error: $e");
+      // Always ensure we have *some* location so the app doesn't hang
+      if (userLat == null || userLng == null) {
+        _useFallbackLocation();
+      }
     }
+  }
+
+  /// Sets a default location so the app can proceed even without GPS.
+  void _useFallbackLocation() {
+    userLat = _fallbackLat;
+    userLng = _fallbackLng;
+    _applyRadiusFilter();
+    _recomputeCache();
+    notifyListeners();
   }
 
   // ─────────────────────────────────────────────────────────

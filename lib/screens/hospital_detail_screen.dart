@@ -427,7 +427,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
         break;
       case ConfidenceLevel.Low:
         confidenceColor = const Color(0xFFFF5252);
-        statusText = "Low Conf (estimated)";
+        statusText = "Low Conf";
         break;
     }
 
@@ -475,50 +475,59 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                 ),
               ),
               const SizedBox(width: 12),
-              const Text(
-                "Bed Availability",
-                style: TextStyle(
-                  color: Color(0xFF81C784),
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: confidenceColor.withOpacity(0.15),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: confidenceColor.withOpacity(0.3)),
-                ),
+              Expanded(
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: confidenceColor,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: confidenceColor.withOpacity(0.6),
-                            blurRadius: 4,
-                          ),
-                        ],
+                    Flexible(
+                      child: Text(
+                        "Bed Availability",
+                        style: const TextStyle(
+                          color: Color(0xFF81C784),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.5,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      statusText,
-                      style: TextStyle(
-                        color: confidenceColor,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: confidenceColor.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: confidenceColor.withOpacity(0.3)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              color: confidenceColor,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: confidenceColor.withOpacity(0.6),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            statusText,
+                            style: TextStyle(
+                              color: confidenceColor,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],

@@ -740,7 +740,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
             ),
             const SizedBox(height: 24),
             Text(
-              "No hospitals found for\\nselected category",
+              "No hospitals found for\nselected category",
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.8),

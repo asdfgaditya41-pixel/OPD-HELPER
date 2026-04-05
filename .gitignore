@@ -1,0 +1,7 @@
+.dart_tool/
+build/
+.env
+.DS_Store
+*.lock
+.firebaserc
+.firebase/
