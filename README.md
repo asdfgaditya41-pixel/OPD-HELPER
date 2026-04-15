@@ -152,9 +152,4 @@ flutter run
 - **Aditya Singh** - *Lead Developer & Architect*
 
 ---
-
-## 📄 License
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
----
 **CityPulse: Because health data shouldn't be a mystery.**
