@@ -3,10 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
-import 'tomtom_map_screen.dart';
+import 'google_map_screen.dart';
 import 'hospital_detail_screen.dart';
 import 'ai_chat_screen.dart';
-
+import '../features/skin_checker/skin_checker_screen.dart';
 class MapHomeScreen extends StatefulWidget {
   const MapHomeScreen({super.key});
 
@@ -305,7 +305,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
           if (!vm.isLoading && !_isLoadingLocation)
             vm.filteredHospitals.isEmpty
                 ? _buildEmptyState()
-                : TomTomMapScreen(
+                : GoogleMapScreen(
                     hospitals: vm.filteredHospitals,
                     userLat: vm.userLat,
                     userLng: vm.userLng,
@@ -475,7 +475,41 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
             ),
           ),
 
-          // 3. AI Chat Assistant FAB
+          // 3. Skin Checker FAB
+          Positioned(
+            bottom: 250,
+            right: 20,
+            child: Container(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFCE93D8), Color(0xFFAB47BC)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(color: const Color(0xFFCE93D8).withOpacity(0.4), blurRadius: 16, offset: const Offset(0, 6)),
+                  BoxShadow(color: const Color(0xFFCE93D8).withOpacity(0.3), blurRadius: 5, spreadRadius: 2),
+                ],
+              ),
+              child: FloatingActionButton(
+                heroTag: 'skin_checker_fab',
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const SkinCheckerScreen(),
+                    ),
+                  );
+                },
+                child: const Icon(Icons.biotech_rounded, color: Colors.white, size: 28),
+              ),
+            ),
+          ),
+
+          // 4. AI Chat Assistant FAB
           Positioned(
             bottom: 180,
             right: 20,

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
-import 'tomtom_map_screen.dart';
+import 'google_map_screen.dart';
 import 'hospital_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -660,7 +660,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                 Navigator.push(
                                                   context,
                                                   MaterialPageRoute(
-                                                    builder: (_) => TomTomMapScreen(
+                                                    builder: (_) => GoogleMapScreen(
                                                       hospitals: [h],
                                                       userLat: vm.userLat,
                                                       userLng: vm.userLng,
