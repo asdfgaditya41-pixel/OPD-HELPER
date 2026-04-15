@@ -31,6 +31,13 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        val envFile = project.rootProject.file(".env")
+        val properties = java.util.Properties()
+        if (envFile.exists()) {
+            properties.load(java.io.FileInputStream(envFile))
+        }
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = properties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
     }
 
     buildTypes {
