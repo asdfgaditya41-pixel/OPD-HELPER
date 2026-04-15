@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../models/hospital.dart';
 import '../viewmodels/auth_viewmodel.dart';
 import '../viewmodels/booking_viewmodel.dart';
+import '../services/language_service.dart';
+import '../utils/translations.dart';
 
 class BookingScreen extends StatefulWidget {
   final Hospital hospital;
@@ -31,6 +33,8 @@ class _BookingScreenState extends State<BookingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final langService = Provider.of<LanguageService>(context);
+    final locale = langService.currentLocale;
     final authVm = Provider.of<AuthViewModel>(context);
     final vm = Provider.of<BookingViewModel>(context);
     final user = authVm.appUser;
@@ -51,15 +55,15 @@ class _BookingScreenState extends State<BookingScreen> {
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          "Book Admission",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        title: Text(
+          AppTranslations.getText('book_admission', locale),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: vm.isSuccess
-          ? _buildSuccessView(vm)
+          ? _buildSuccessView(vm, locale)
           : SafeArea(
               child: Form(
                 key: _formKey,
@@ -68,7 +72,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildHospitalCard(),
+                      _buildHospitalCard(locale),
                       const SizedBox(height: 24),
 
                       // Error Message if any
@@ -100,8 +104,8 @@ class _BookingScreenState extends State<BookingScreen> {
                           ),
                         ),
 
-                      const Text(
-                        "Patient Details",
+                      Text(
+                        AppTranslations.getText('patient_details', locale),
                         style: TextStyle(
                           color: Colors.white54,
                           fontSize: 13,
@@ -112,12 +116,12 @@ class _BookingScreenState extends State<BookingScreen> {
                       const SizedBox(height: 12),
 
                       _buildTextField(
-                        label: "Patient Full Name",
+                        label: AppTranslations.getText('patient_name_label', locale),
                         initialValue: vm.patientName,
                         icon: Icons.person_rounded,
                         onChanged: vm.updateName,
                         validator: (val) =>
-                            val == null || val.isEmpty ? 'Required' : null,
+                            val == null || val.isEmpty ? AppTranslations.getText('required', locale) : null,
                       ),
                       const SizedBox(height: 16),
 
@@ -125,7 +129,7 @@ class _BookingScreenState extends State<BookingScreen> {
                         children: [
                           Expanded(
                             child: _buildTextField(
-                              label: "Age",
+                              label: AppTranslations.getText('age_label', locale),
                               initialValue: vm.age.toString(),
                               icon: Icons.cake_rounded,
                               keyboardType: TextInputType.number,
@@ -135,7 +139,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                   val == null ||
                                       val.isEmpty ||
                                       int.tryParse(val) == null
-                                  ? 'Invalid'
+                                  ? AppTranslations.getText('invalid', locale)
                                   : null,
                             ),
                           ),
@@ -171,7 +175,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                   ) {
                                     return DropdownMenuItem<String>(
                                       value: value,
-                                      child: Text(value),
+                                      child: Text(AppTranslations.getText(value.toLowerCase(), locale)),
                                     );
                                   }).toList(),
                                   onChanged: (newVal) {
@@ -186,18 +190,18 @@ class _BookingScreenState extends State<BookingScreen> {
                       const SizedBox(height: 16),
 
                       _buildTextField(
-                        label: "Contact Number",
+                        label: AppTranslations.getText('contact_number_label', locale),
                         initialValue: vm.contactNumber,
                         icon: Icons.phone_rounded,
                         keyboardType: TextInputType.phone,
                         onChanged: vm.updateContact,
                         validator: (val) =>
-                            val == null || val.isEmpty ? 'Required' : null,
+                            val == null || val.isEmpty ? AppTranslations.getText('required', locale) : null,
                       ),
                       const SizedBox(height: 32),
 
-                      const Text(
-                        "Admission Motivation",
+                      Text(
+                        AppTranslations.getText('admission_motivation', locale),
                         style: TextStyle(
                           color: Colors.white54,
                           fontSize: 13,
@@ -208,13 +212,13 @@ class _BookingScreenState extends State<BookingScreen> {
                       const SizedBox(height: 12),
 
                       _buildTextField(
-                        label: "Symptoms or Reason for visit",
+                        label: AppTranslations.getText('symptoms_reason', locale),
                         initialValue: vm.symptoms,
                         icon: Icons.medical_services_rounded,
                         onChanged: vm.updateSymptoms,
                         maxLines: 3,
                         validator: (val) =>
-                            val == null || val.isEmpty ? 'Required' : null,
+                            val == null || val.isEmpty ? AppTranslations.getText('required', locale) : null,
                       ),
                       const SizedBox(height: 24),
 
@@ -262,12 +266,12 @@ class _BookingScreenState extends State<BookingScreen> {
                               ),
                             ),
                             const SizedBox(width: 16),
-                            const Expanded(
+                            Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Medical Emergency",
+                                    AppTranslations.getText('medical_emergency', locale),
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -275,7 +279,7 @@ class _BookingScreenState extends State<BookingScreen> {
                                     ),
                                   ),
                                   Text(
-                                    "Prioritizes ICU allocation natively",
+                                    AppTranslations.getText('prioritize_icu_msg', locale),
                                     style: TextStyle(
                                       color: Colors.white54,
                                       fontSize: 12,
@@ -295,8 +299,8 @@ class _BookingScreenState extends State<BookingScreen> {
                       const SizedBox(height: 24),
 
                       // Bed Preference Dropdown
-                      const Text(
-                        "Preferred Bed Type",
+                      Text(
+                        AppTranslations.getText('pref_bed_type', locale),
                         style: TextStyle(
                           color: Colors.white54,
                           fontSize: 13,
@@ -341,7 +345,7 @@ class _BookingScreenState extends State<BookingScreen> {
                             ) {
                               return DropdownMenuItem<String>(
                                 value: value,
-                                child: Text(value),
+                                child: Text(AppTranslations.getText(value.toLowerCase(), locale)),
                               );
                             }).toList(),
                             onChanged: vm.isEmergency
@@ -356,10 +360,10 @@ class _BookingScreenState extends State<BookingScreen> {
                         ),
                       ),
                       if (vm.isEmergency)
-                        const Padding(
+                        Padding(
                           padding: EdgeInsets.only(top: 8, left: 4),
                           child: Text(
-                            "Overridden to ICU priority due to emergency.",
+                            AppTranslations.getText('emergency_override_msg', locale),
                             style: TextStyle(
                               color: Colors.redAccent,
                               fontSize: 12,
@@ -411,8 +415,8 @@ class _BookingScreenState extends State<BookingScreen> {
                                     strokeWidth: 2.5,
                                   ),
                                 )
-                              : const Text(
-                                  "Confirm Booking & Allocate Bed",
+                              : Text(
+                                  AppTranslations.getText('confirm_booking_btn', locale),
                                   style: TextStyle(
                                     fontWeight: FontWeight.w900,
                                     fontSize: 16,
@@ -467,7 +471,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  Widget _buildHospitalCard() {
+  Widget _buildHospitalCard(String locale) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -495,7 +499,7 @@ class _BookingScreenState extends State<BookingScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Destination Facility",
+                  AppTranslations.getText('dest_facility', locale),
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.5),
                     fontSize: 12,
@@ -518,7 +522,7 @@ class _BookingScreenState extends State<BookingScreen> {
     );
   }
 
-  Widget _buildSuccessView(BookingViewModel vm) {
+  Widget _buildSuccessView(BookingViewModel vm, String locale) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -538,8 +542,8 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
             ),
             const SizedBox(height: 32),
-            const Text(
-              "Bed Allocated!",
+            Text(
+              AppTranslations.getText('bed_allocated', locale),
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 32,
@@ -559,8 +563,8 @@ class _BookingScreenState extends State<BookingScreen> {
               ),
               child: Column(
                 children: [
-                  const Text(
-                    "ASSIGNMENT",
+                  Text(
+                    AppTranslations.getText('assignment', locale),
                     style: TextStyle(
                       color: Colors.white54,
                       fontSize: 12,
@@ -570,7 +574,7 @@ class _BookingScreenState extends State<BookingScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    "Room ${vm.assignedRoom ?? 'TBD'}",
+                    "${AppTranslations.getText('room', locale)} ${vm.assignedRoom ?? AppTranslations.getText('tbd_label', locale)}",
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -588,7 +592,7 @@ class _BookingScreenState extends State<BookingScreen> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        (vm.assignedBed ?? 'N/A').toUpperCase(),
+                        (vm.assignedBed ?? AppTranslations.getText('na_label', locale)).toUpperCase(),
                         style: const TextStyle(
                           color: Color(0xFF00E676),
                           fontSize: 20,
@@ -602,7 +606,7 @@ class _BookingScreenState extends State<BookingScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              "Your appointment is confirmed. Please arrive swiftly.",
+              AppTranslations.getText('booking_confirmed_msg', locale),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.7),
@@ -625,8 +629,8 @@ class _BookingScreenState extends State<BookingScreen> {
                   Navigator.pop(context);
                   Navigator.pop(context);
                 },
-                child: const Text(
-                  "Return to Map",
+                child: Text(
+                  AppTranslations.getText('return_to_map', locale),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                 ),
               ),

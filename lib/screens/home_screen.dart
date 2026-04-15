@@ -1,6 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:provider/provider.dart';
+import '../services/language_service.dart';
+import '../utils/translations.dart';
 import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
 import 'google_map_screen.dart';
@@ -31,10 +33,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _showAddPatientDialog(BuildContext context, String hospitalId) {
+  void _showAddPatientDialog(BuildContext context, String hospitalId, String locale) {
     final nameController = TextEditingController();
-    String selectedCondition = 'Fever';
-    final conditions = ['Fever', 'Cold', 'Injury', 'Chest Pain', 'Others'];
+    String selectedCondition = 'cond_fever';
+    final conditions = ['cond_fever', 'cond_cold', 'cond_injury', 'cond_chest_pain', 'cond_others'];
 
     showDialog(
       context: context,
@@ -56,13 +58,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.person_add_rounded, color: Color(0xFF00E5CC), size: 28),
-                    SizedBox(width: 12),
+                    const Icon(Icons.person_add_rounded, color: Color(0xFF00E5CC), size: 28),
+                    const SizedBox(width: 12),
                     Text(
-                      "Add Patient",
-                      style: TextStyle(
+                      AppTranslations.getText('add_patient', locale),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w800,
                         fontSize: 20,
@@ -80,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     controller: nameController,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      labelText: 'Patient Name',
+                      labelText: AppTranslations.getText('patient_name_label', locale),
                       prefixIcon: const Icon(Icons.person_outline, color: Color(0xFF00BFA5)),
                       labelStyle: const TextStyle(color: Colors.white54),
                       filled: true,
@@ -97,11 +99,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                   const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
-                    initialValue: selectedCondition,
+                    value: selectedCondition,
                     dropdownColor: const Color(0xFF122A34),
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
-                      labelText: 'Condition',
+                      labelText: AppTranslations.getText('condition_label', locale),
                       prefixIcon: const Icon(Icons.medical_services_outlined, color: Color(0xFF00BFA5)),
                       labelStyle: const TextStyle(color: Colors.white54),
                       filled: true,
@@ -116,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
                     ),
                     items: conditions.map((c) {
-                      return DropdownMenuItem(value: c, child: Text(c));
+                      return DropdownMenuItem(value: c, child: Text(AppTranslations.getText(c, locale)));
                     }).toList(),
                     onChanged: (val) {
                       if (val != null) setState(() => selectedCondition = val);
@@ -128,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 TextButton(
                   onPressed: () => Navigator.pop(context),
                   child: Text(
-                    "Cancel",
+                    AppTranslations.getText('cancel', locale),
                     style: TextStyle(color: Colors.white.withOpacity(0.5), fontWeight: FontWeight.w600),
                   ),
                 ),
@@ -159,9 +161,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         if (context.mounted) Navigator.pop(context);
                       }
                     },
-                    child: const Text(
-                      "Add Patient",
-                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                    child: Text(
+                      AppTranslations.getText('add_patient', locale),
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                     ),
                   ),
                 ),
@@ -173,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _showUpdateBedsDialog(BuildContext context, Hospital h) {
+  void _showUpdateBedsDialog(BuildContext context, Hospital h, String locale) {
     final bedsController = TextEditingController(text: h.bedsAvailable.toString());
 
     showDialog(
@@ -187,13 +189,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             decoration: const BoxDecoration(
               border: Border(bottom: BorderSide(color: Color(0xFFFFB74D), width: 2)),
             ),
-            child: const Row(
+            child: Row(
               children: [
-                Icon(Icons.bed_rounded, color: Color(0xFFFFB74D), size: 28),
-                SizedBox(width: 12),
+                const Icon(Icons.bed_rounded, color: Color(0xFFFFB74D), size: 28),
+                const SizedBox(width: 12),
                 Text(
-                  "Update Bed Status",
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20),
+                  AppTranslations.getText('update_bed_status', locale),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20),
                 ),
               ],
             ),
@@ -202,9 +204,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 8),
-              const Text(
-                "Updating bed availability ensures patients have accurate real-time data.",
-                style: TextStyle(color: Colors.white70, fontSize: 13),
+              Text(
+                AppTranslations.getText('update_bed_desc', locale),
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -212,7 +214,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 style: const TextStyle(color: Colors.white),
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'Available Beds',
+                  labelText: AppTranslations.getText('available_beds_label', locale),
                   prefixIcon: const Icon(Icons.manage_accounts_rounded, color: Color(0xFFFFB74D)),
                   labelStyle: const TextStyle(color: Colors.white54),
                   filled: true,
@@ -232,7 +234,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Cancel", style: TextStyle(color: Colors.white.withOpacity(0.5))),
+              child: Text(AppTranslations.getText('cancel', locale), style: TextStyle(color: Colors.white.withOpacity(0.5))),
             ),
             Container(
               decoration: BoxDecoration(
@@ -254,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     if (context.mounted) Navigator.pop(context);
                   }
                 },
-                child: const Text("Update", style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                child: Text(AppTranslations.getText('update', locale), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
               ),
             ),
           ],
@@ -263,7 +265,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  void _showSortOptions(BuildContext context) {
+  void _showSortOptions(BuildContext context, String locale) {
     final vm = Provider.of<HospitalViewModel>(context, listen: false);
 
     showModalBottomSheet(
@@ -290,9 +292,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              "Sort Hospitals",
-              style: TextStyle(
+            Text(
+              AppTranslations.getText('sort_hospitals', locale),
+              style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
@@ -300,17 +302,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ),
             const SizedBox(height: 16),
-            _sortTile(Icons.location_on_rounded, "By Distance", "Nearest first",
+            _sortTile(Icons.location_on_rounded, AppTranslations.getText('by_distance', locale), AppTranslations.getText('nearest_first', locale),
                 Colors.cyan, () {
               vm.sortByDistance();
               Navigator.pop(context);
             }),
-            _sortTile(Icons.timer_rounded, "By Wait Time", "Shortest wait first",
+            _sortTile(Icons.timer_rounded, AppTranslations.getText('by_wait_time', locale), AppTranslations.getText('shortest_wait_first', locale),
                 Colors.orangeAccent, () {
               vm.sortByWaitTime();
               Navigator.pop(context);
             }),
-            _sortTile(Icons.groups_rounded, "By Doctors", "Most doctors first",
+            _sortTile(Icons.groups_rounded, AppTranslations.getText('by_doctors', locale), AppTranslations.getText('most_doctors_first', locale),
                 Colors.purpleAccent, () {
               vm.sortByDoctors();
               Navigator.pop(context);
@@ -369,18 +371,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<HospitalViewModel>(context);
+    final langService = Provider.of<LanguageService>(context);
+    final locale = langService.currentLocale;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Row(
+        title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.local_hospital_rounded, color: Color(0xFF00E5CC), size: 26),
-            SizedBox(width: 10),
+            const Icon(Icons.local_hospital_rounded, color: Color(0xFF00E5CC), size: 26),
+            const SizedBox(width: 10),
             Text(
-            "City Pulse",
-              style: TextStyle(
+              AppTranslations.getText('city_pulse', locale),
+              style: const TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: 22,
                 letterSpacing: 0.5,
@@ -412,7 +416,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
             child: IconButton(
               icon: const Icon(Icons.sort_rounded, color: Color(0xFF00E5CC)),
-              onPressed: () => _showSortOptions(context),
+              onPressed: () => _showSortOptions(context, locale),
             ),
           ),
         ],
@@ -443,7 +447,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      "Loading hospitals...",
+                      AppTranslations.getText('loading_hospitals', locale),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.5),
                         fontSize: 16,
@@ -459,7 +463,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 itemBuilder: (context, index) {
                   final h = vm.hospitals[index];
 
-                  // Staggered fade+slide animation
                   final delay = (index * 0.15).clamp(0.0, 1.0);
                   final itemAnimation = Tween<double>(begin: 0, end: 1).animate(
                     CurvedAnimation(
@@ -516,7 +519,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                             child: Column(
                               children: [
-                                // Top accent line
                                 Container(
                                   height: 3,
                                   decoration: BoxDecoration(
@@ -535,8 +537,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       if (vm.getConfidenceLevel(h) == ConfidenceLevel.Low)
-                                        _warningBanner(vm, h),
-                                      /// NAME + STATUS
+                                        _warningBanner(vm, h, locale),
                                       Row(
                                         children: [
                                           Expanded(
@@ -550,13 +551,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                               ),
                                             ),
                                           ),
-                                          _statusChip(h.opdQueue),
+                                          _statusChip(h.opdQueue, locale),
                                         ],
                                       ),
 
                                       const SizedBox(height: 8),
 
-                                      /// DISTANCE + ZONE
                                       Row(
                                         children: [
                                           const Icon(Icons.location_on_rounded, color: Color(0xFF00E5CC), size: 15),
@@ -592,20 +592,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                                       const SizedBox(height: 18),
 
-                                      /// INFO CARDS ROW
                                       Row(
                                         children: [
-                                          _infoCard(Icons.people_alt_rounded, "Queue", h.opdQueue.toString(), const Color(0xFF64B5F6)),
+                                          _infoCard(Icons.people_alt_rounded, AppTranslations.getText('queue', locale), h.opdQueue.toString(), const Color(0xFF64B5F6)),
                                           const SizedBox(width: 10),
-                                          _infoCard(Icons.bed_rounded, "Beds", h.bedsAvailable.toString(), const Color(0xFF81C784)),
+                                          _infoCard(Icons.bed_rounded, AppTranslations.getText('beds_text', locale), h.bedsAvailable.toString(), const Color(0xFF81C784)),
                                           const SizedBox(width: 10),
-                                          _infoCard(Icons.timer_rounded, "Wait", "${h.waitTime}m", const Color(0xFFFFB74D)),
+                                          _infoCard(Icons.timer_rounded, AppTranslations.getText('wait', locale), "${h.waitTime}m", const Color(0xFFFFB74D)),
                                         ],
                                       ),
 
                                       const SizedBox(height: 18),
 
-                                      /// BUTTONS
                                       Row(
                                         children: [
                                           Expanded(
@@ -633,11 +631,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                   ),
                                                   padding: const EdgeInsets.symmetric(vertical: 13),
                                                 ),
-                                                onPressed: () => _showAddPatientDialog(context, h.id),
+                                                onPressed: () => _showAddPatientDialog(context, h.id, locale),
                                                 icon: const Icon(Icons.person_add_rounded, size: 18),
-                                                label: const Text(
-                                                  "Add Patient",
-                                                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                                                label: Text(
+                                                  AppTranslations.getText('add_patient', locale),
+                                                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                                                 ),
                                               ),
                                             ),
@@ -712,7 +710,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _warningBanner(HospitalViewModel vm, Hospital h) {
+  Widget _warningBanner(HospitalViewModel vm, Hospital h, String locale) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -733,9 +731,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "⚠️ Please update bed status",
-                  style: TextStyle(
+                Text(
+                  "⚠️ ${AppTranslations.getText('please_update_bed_status', locale)}",
+                  style: const TextStyle(
                     color: Color(0xFFFF5252),
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -743,7 +741,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  "Data is outdated (Last updated: ${vm.getTimeAgoFormatted(h.lastUpdated)}).",
+                  "${AppTranslations.getText('data_outdated', locale)} (${AppTranslations.getText('last_updated', locale)}: ${vm.getTimeAgoFormatted(h.lastUpdated, locale)}).",
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.6),
                     fontSize: 12,
@@ -761,8 +759,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               minimumSize: const Size(60, 30),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
-            onPressed: () => _showUpdateBedsDialog(context, h),
-            child: const Text("Update", style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
+            onPressed: () => _showUpdateBedsDialog(context, h, locale),
+            child: Text(AppTranslations.getText('update', locale), style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 12)),
           ),
         ],
       ),
@@ -812,7 +810,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _statusChip(int queue) {
+  Widget _statusChip(int queue, String locale) {
     Color bgStart, bgEnd;
     String text;
     IconData icon;
@@ -820,17 +818,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     if (queue < 10) {
       bgStart = const Color(0xFF00C853);
       bgEnd = const Color(0xFF69F0AE);
-      text = "Low";
+      text = AppTranslations.getText('short_wait', locale);
       icon = Icons.check_circle_rounded;
     } else if (queue < 30) {
       bgStart = const Color(0xFFFF9100);
       bgEnd = const Color(0xFFFFAB40);
-      text = "Medium";
+      text = AppTranslations.getText('mod_wait', locale);
       icon = Icons.remove_circle_rounded;
     } else {
       bgStart = const Color(0xFFFF1744);
       bgEnd = const Color(0xFFFF5252);
-      text = "High";
+      text = AppTranslations.getText('long_wait', locale);
       icon = Icons.warning_rounded;
     }
 

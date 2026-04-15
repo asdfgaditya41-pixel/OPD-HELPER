@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import '../services/language_service.dart';
+import '../utils/translations.dart';
+import 'hospital_dashboard_screen.dart';
 import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
-import 'hospital_dashboard_screen.dart';
 
 class HospitalSelectionScreen extends StatefulWidget {
   const HospitalSelectionScreen({super.key});
@@ -26,9 +27,12 @@ class _HospitalSelectionScreenState extends State<HospitalSelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final langService = Provider.of<LanguageService>(context);
+    final locale = langService.currentLocale;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Select Hospital'),
+        title: Text(AppTranslations.getText('select_hospital', locale)),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -67,7 +71,7 @@ class _HospitalSelectionScreenState extends State<HospitalSelectionScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No hospitals found nearby.',
+                        AppTranslations.getText('no_hospitals_found', locale),
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.8),
                           fontSize: 16,
@@ -76,7 +80,7 @@ class _HospitalSelectionScreenState extends State<HospitalSelectionScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Check your location permissions or try again.',
+                        AppTranslations.getText('check_location_perms', locale),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.6),
@@ -90,7 +94,7 @@ class _HospitalSelectionScreenState extends State<HospitalSelectionScreen> {
                           vm.getUserLocation();
                         },
                         icon: const Icon(Icons.refresh_rounded),
-                        label: const Text('Retry'),
+                        label: Text(AppTranslations.getText('retry', locale)),
                       ),
                     ],
                   ),
@@ -117,9 +121,9 @@ class _HospitalSelectionScreenState extends State<HospitalSelectionScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Select your hospital',
-                      style: TextStyle(
+                    Text(
+                      AppTranslations.getText('select_your_hospital', locale),
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
                         fontWeight: FontWeight.w800,
@@ -127,7 +131,7 @@ class _HospitalSelectionScreenState extends State<HospitalSelectionScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'We use your location to show hospitals closest to you.',
+                      AppTranslations.getText('location_context', locale),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.6),
                         fontSize: 13,
@@ -221,7 +225,7 @@ class _HospitalSelectionScreenState extends State<HospitalSelectionScreen> {
                               ),
                               subtitle: Text(
                                 distance != null
-                                    ? '${h.location} • $distance km away'
+                                    ? '${h.location} • $distance km ${AppTranslations.getText('away', locale)}'
                                     : h.location,
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.6),
@@ -249,7 +253,7 @@ class _HospitalSelectionScreenState extends State<HospitalSelectionScreen> {
                                   ),
                                 );
                               },
-                        child: const Text('Continue'),
+                        child: Text(AppTranslations.getText('continue_text', locale)),
                       ),
                     ),
                   ],

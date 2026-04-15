@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:fl_chart/fl_chart.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../services/language_service.dart';
+import '../utils/translations.dart';
 import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
 import '../viewmodels/auth_viewmodel.dart';
@@ -9,6 +9,8 @@ import '../models/hospital_room.dart';
 import '../services/firestore_service.dart';
 import 'components/auth_options_bottom_sheet.dart';
 import 'booking_screen.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HospitalDetailScreen extends StatefulWidget {
   final Hospital hospital;
@@ -43,14 +45,16 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
   Widget build(BuildContext context) {
     final vm = Provider.of<HospitalViewModel>(context, listen: false);
     final authVm = Provider.of<AuthViewModel>(context);
+    final langService = Provider.of<LanguageService>(context);
+    final locale = langService.currentLocale;
     final h = widget.hospital;
 
     int expectedTime = vm.getExpectedConsultationTime(h);
-    String expectedTimeString = vm.formatDuration(expectedTime);
-    String totalWaitTimeString = vm.formatDuration(h.waitTime);
+    String expectedTimeString = vm.formatDuration(expectedTime, locale);
+    String totalWaitTimeString = vm.formatDuration(h.waitTime, locale);
     Color loadColor = vm.getLoadColor(h.waitTime);
-    String loadText = vm.getLoadText(h.waitTime);
-    String bestTime = vm.getBestTimeToVisit(h);
+    String loadText = vm.getLoadText(h.waitTime, locale);
+    String bestTime = vm.getBestTimeToVisit(h, locale);
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -106,7 +110,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Cannot call ${h.contactNumber}'),
+                        content: Text('${AppTranslations.getText('cannot_call', locale)} ${h.contactNumber}'),
                         backgroundColor: const Color(0xFF122A34),
                       ),
                     );
@@ -140,12 +144,12 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                 // 1. Prediction Card
                 _buildAnimatedChild(
                   0,
-                  _buildPredictionCard(expectedTimeString, bestTime),
+                  _buildPredictionCard(expectedTimeString, bestTime, locale),
                 ),
                 const SizedBox(height: 16),
 
                 // 2. Bed Availability Card
-                _buildAnimatedChild(1, _buildBedAvailabilityCard(vm, h)),
+                _buildAnimatedChild(1, _buildBedAvailabilityCard(vm, h, locale)),
                 const SizedBox(height: 16),
 
                 // 3. Stats Grid (3 items)
@@ -156,12 +160,13 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                     loadText,
                     loadColor,
                     h.opdQueue,
+                    locale,
                   ),
                 ),
                 const SizedBox(height: 20),
 
                 // 4. Report Action
-                _buildAnimatedChild(3, _buildReportButton(vm, h)),
+                _buildAnimatedChild(3, _buildReportButton(vm, h, locale)),
                 const SizedBox(height: 28),
 
                 // 5. Chart Title
@@ -182,9 +187,9 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
-                        "Wait Time Trend",
-                        style: TextStyle(
+                      Text(
+                        AppTranslations.getText('wait_time_trend', locale),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -201,7 +206,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text(
-                          "Past 6 Hours",
+                          AppTranslations.getText('past_6_hours', locale),
                           style: TextStyle(
                             color: Colors.white.withOpacity(0.4),
                             fontSize: 12,
@@ -222,7 +227,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                 const SizedBox(height: 32),
 
                 // 7. Book Appointment
-                _buildAnimatedChild(6, _buildBookAppointmentButton(authVm, h)),
+                _buildAnimatedChild(6, _buildBookAppointmentButton(authVm, h, locale)),
                 const SizedBox(height: 24),
               ],
             ),
@@ -257,7 +262,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     );
   }
 
-  Widget _buildPredictionCard(String expectedTimeString, String bestTime) {
+  Widget _buildPredictionCard(String expectedTimeString, String bestTime, String locale) {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
@@ -300,23 +305,23 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                 ),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Consultation Prediction",
-                      style: TextStyle(
+                      AppTranslations.getText('consultation_prediction', locale),
+                      style: const TextStyle(
                         color: Color(0xFF00E5CC),
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.8,
                       ),
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
-                      "Based on current load & doctors",
-                      style: TextStyle(color: Colors.white30, fontSize: 11),
+                      AppTranslations.getText('based_on_current_load', locale),
+                      style: const TextStyle(color: Colors.white30, fontSize: 11),
                     ),
                   ],
                 ),
@@ -328,19 +333,19 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                "~$expectedTimeString",
+                AppTranslations.getText('book_appointment', locale),
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 36,
-                  fontWeight: FontWeight.w900,
-                  height: 1,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.5,
                 ),
               ),
               const SizedBox(width: 8),
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Text(
-                  "estimated wait",
+                  AppTranslations.getText('estimated_wait', locale),
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.4),
                     fontSize: 13,
@@ -367,7 +372,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  "Best time: $bestTime",
+                  "${AppTranslations.getText('best_time', locale)}: $bestTime",
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.7),
                     fontSize: 13,
@@ -381,26 +386,26 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
       ),
     );
   }
-
   Widget _buildStatsGrid(
     String waitTime,
     String loadText,
     Color loadColor,
     int queue,
+    String locale,
   ) {
     return Row(
       children: [
         _statCard(
-          "Wait Time",
+          AppTranslations.getText('wait_time', locale),
           waitTime,
           Icons.hourglass_bottom_rounded,
           const Color(0xFFFFB74D),
         ),
         const SizedBox(width: 10),
-        _statCard("Load", loadText, Icons.speed_rounded, loadColor),
+        _statCard(AppTranslations.getText('load', locale), loadText, Icons.speed_rounded, loadColor),
         const SizedBox(width: 10),
         _statCard(
-          "Queue",
+          AppTranslations.getText('queue', locale),
           "$queue",
           Icons.people_alt_rounded,
           const Color(0xFF64B5F6),
@@ -409,7 +414,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     );
   }
 
-  Widget _buildBedAvailabilityCard(HospitalViewModel vm, Hospital h) {
+  Widget _buildBedAvailabilityCard(HospitalViewModel vm, Hospital h, String locale) {
     ConfidenceLevel confidence = vm.getConfidenceLevel(h);
     int displayBeds = vm.getPredictedBeds(h);
     bool isPredicted = confidence == ConfidenceLevel.Low;
@@ -419,19 +424,19 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     switch (confidence) {
       case ConfidenceLevel.High:
         confidenceColor = const Color(0xFF00E676);
-        statusText = "High Confidence";
+        statusText = AppTranslations.getText('high_confidence', locale);
         break;
       case ConfidenceLevel.Medium:
         confidenceColor = const Color(0xFFFFB300);
-        statusText = "Medium Confidence";
+        statusText = AppTranslations.getText('medium_confidence', locale);
         break;
       case ConfidenceLevel.Low:
         confidenceColor = const Color(0xFFFF5252);
-        statusText = "Low Conf";
+        statusText = AppTranslations.getText('low_confidence', locale);
         break;
     }
 
-    String timeAgo = vm.getTimeAgoFormatted(h.lastUpdated);
+    String timeAgo = vm.getTimeAgoFormatted(h.lastUpdated, locale);
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -480,7 +485,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                   children: [
                     Flexible(
                       child: Text(
-                        "Bed Availability",
+                        AppTranslations.getText('bed_availability', locale),
                         style: const TextStyle(
                           color: Color(0xFF81C784),
                           fontSize: 16,
@@ -556,8 +561,8 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                 padding: const EdgeInsets.only(bottom: 6),
                 child: Text(
                   isPredicted
-                      ? "estimated beds available"
-                      : "beds currently available",
+                      ? AppTranslations.getText('estimated_beds_available', locale)
+                      : AppTranslations.getText('beds_currently_available', locale),
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.6),
                     fontSize: 14,
@@ -625,7 +630,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                               ),
                             ),
                             child: Text(
-                              "$icu ICU Available",
+                              "$icu ${AppTranslations.getText('icu_available', locale)}",
                               style: const TextStyle(
                                 color: Colors.redAccent,
                                 fontSize: 12,
@@ -647,7 +652,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                               ),
                             ),
                             child: Text(
-                              "$gen General Available",
+                              "$gen ${AppTranslations.getText('general_available', locale)}",
                               style: const TextStyle(
                                 color: Color(0xFF00BFA5),
                                 fontSize: 12,
@@ -696,7 +701,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      "Room ${r.roomNumber}",
+                                      "${AppTranslations.getText('room', locale)} ${r.roomNumber}",
                                       style: const TextStyle(
                                         color: Colors.white,
                                         fontSize: 14,
@@ -706,8 +711,8 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                                     const Spacer(),
                                     Text(
                                       availableBeds == 1
-                                          ? "1 Bed"
-                                          : "$availableBeds Beds",
+                                          ? "1 ${AppTranslations.getText('bed', locale)}"
+                                          : "$availableBeds ${AppTranslations.getText('beds', locale)}",
                                       style: TextStyle(
                                         color: category == 'ICU'
                                             ? Colors.redAccent
@@ -724,7 +729,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                               Padding(
                                 padding: const EdgeInsets.only(top: 2),
                                 child: Text(
-                                  "+ $extra more $category room${extra > 1 ? 's' : ''}",
+                                  "+ $extra ${AppTranslations.getText('more_category_rooms', locale)}",
                                   style: TextStyle(
                                     color: Colors.white.withOpacity(0.4),
                                     fontSize: 12,
@@ -746,7 +751,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
               const Icon(Icons.update_rounded, color: Colors.white54, size: 14),
               const SizedBox(width: 6),
               Text(
-                "Last updated: $timeAgo",
+                "${AppTranslations.getText('last_updated', locale)}: $timeAgo",
                 style: const TextStyle(
                   color: Colors.white54,
                   fontSize: 12,
@@ -760,7 +765,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     );
   }
 
-  Widget _buildReportButton(HospitalViewModel vm, Hospital h) {
+  Widget _buildReportButton(HospitalViewModel vm, Hospital h, String locale) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -781,9 +786,9 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
                     setState(() => _isReporting = false);
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text(
-                          'Thank you! Beds reported as unavailable.',
-                          style: TextStyle(color: Colors.white),
+                        content: Text(
+                          AppTranslations.getText('thank_you_report', locale),
+                          style: const TextStyle(color: Colors.white),
                         ),
                         backgroundColor: const Color(0xFF122A34),
                       ),
@@ -1158,7 +1163,7 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
     );
   }
 
-  Widget _buildBookAppointmentButton(AuthViewModel authVm, Hospital h) {
+  Widget _buildBookAppointmentButton(AuthViewModel authVm, Hospital h, String locale) {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -1197,9 +1202,9 @@ class _HospitalDetailScreenState extends State<HospitalDetailScreen>
           }
         },
         icon: const Icon(Icons.calendar_month_rounded, size: 24),
-        label: const Text(
-          "Book Appointment",
-          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+        label: Text(
+          AppTranslations.getText('book_appointment', locale),
+          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
         ),
       ),
     );

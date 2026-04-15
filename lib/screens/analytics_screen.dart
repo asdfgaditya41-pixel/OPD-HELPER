@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../viewmodels/analytics_viewmodel.dart';
+import '../services/language_service.dart';
+import '../utils/translations.dart';
 
 class AnalyticsScreen extends StatefulWidget {
   final String hospitalId;
@@ -28,9 +30,12 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final langService = Provider.of<LanguageService>(context);
+    final locale = langService.currentLocale;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Analytics Dashboard'),
+        title: Text(AppTranslations.getText('analytics_dashboard', locale)),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -69,9 +74,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         size: 40,
                       ),
                       const SizedBox(height: 12),
-                      const Text(
-                        'No analytics data yet',
-                        style: TextStyle(
+                      Text(
+                        AppTranslations.getText('no_analytics_data', locale),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -79,7 +84,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Once the system starts collecting traffic, you will see peak hours and wait time trends here.',
+                        AppTranslations.getText('analytics_placeholder', locale),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.7),
@@ -121,9 +126,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Text(
-                            'OPD Analytics',
-                            style: TextStyle(
+                          Text(
+                            AppTranslations.getText('opd_analytics', locale),
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
@@ -131,7 +136,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                           ),
                           const Spacer(),
                           Text(
-                            'Updated ${vm.formatLastUpdated()}',
+                            '${AppTranslations.getText('updated', locale)} ${vm.formatLastUpdated()}',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.6),
                               fontSize: 11,
@@ -146,7 +151,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             child: _infoCard(
                               icon: Icons.schedule_rounded,
                               color: const Color(0xFFFFB74D),
-                              title: 'Peak Hrs',
+                              title: AppTranslations.getText('peak_hrs', locale),
                               value: data.peakHours.isEmpty
                                   ? 'N/A'
                                   : data.peakHours,
@@ -157,7 +162,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             child: _infoCard(
                               icon: Icons.people_alt_rounded,
                               color: const Color(0xFF81C784),
-                              title: 'Patients',
+                              title: AppTranslations.getText('patients', locale),
                               value: data.dailyPatients > 0
                                   ? data.dailyPatients.toString()
                                   : 'N/A',
@@ -168,7 +173,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                             child: _infoCard(
                               icon: Icons.timer_rounded,
                               color: const Color(0xFFE57373),
-                              title: 'Avg Wait',
+                              title: AppTranslations.getText('avg_wait', locale),
                               value: data.averageWaitTime > 0
                                   ? '${data.averageWaitTime}m'
                                   : '0m',
@@ -198,9 +203,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'AI Insights',
-                                    style: TextStyle(
+                                  Text(
+                                    AppTranslations.getText('ai_insights', locale),
+                                    style: const TextStyle(
                                       color: Color(0xFF00E5CC),
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
@@ -222,9 +227,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
-                      const Text(
-                        'Wait Time Trend',
-                        style: TextStyle(
+                      Text(
+                        AppTranslations.getText('wait_time_trend', locale),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -247,7 +252,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         child: waits.isEmpty
                             ? Center(
                                 child: Text(
-                                  'No wait time data.',
+                                  AppTranslations.getText('no_wait_data', locale),
                                   style: TextStyle(
                                     color: Colors.white.withOpacity(0.6),
                                     fontSize: 13,
@@ -340,9 +345,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                               ),
                       ),
                       const SizedBox(height: 24),
-                      const Text(
-                        'Queue Trend',
-                        style: TextStyle(
+                      Text(
+                        AppTranslations.getText('queue_trend', locale),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -365,7 +370,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                         child: queues.isEmpty
                             ? Center(
                                 child: Text(
-                                  'No queue data.',
+                                  AppTranslations.getText('no_queue_data', locale),
                                   style: TextStyle(
                                     color: Colors.white.withOpacity(0.6),
                                     fontSize: 13,

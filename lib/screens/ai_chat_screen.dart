@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/ai_explanation_service.dart';
 import '../viewmodels/hospital_viewmodel.dart';
+import '../services/language_service.dart';
+import '../utils/translations.dart';
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key});
@@ -11,18 +13,25 @@ class AiChatScreen extends StatefulWidget {
 }
 
 class _AiChatScreenState extends State<AiChatScreen> {
-  final List<Map<String, String>> _messages = [
-    {
-      'role': 'ai',
-      'text': 'Hello! I process emergency queue data and real-time bed availability to recommend the fastest path to care. Ask me anything about my map rankings.',
-    }
-  ];
+  List<Map<String, String>> _messages = [];
+  List<String> _quickPrompts = [];
+  bool _isInitialized = false;
 
-  final List<String> _quickPrompts = [
-    "Why this hospital?",
-    "Is there a closer option?",
-    "Which has lowest wait time?",
-  ];
+  void _initializeLocalizations(String locale) {
+    if (_isInitialized) return;
+    _isInitialized = true;
+    _messages = [
+      {
+        'role': 'ai',
+        'text': AppTranslations.getText('ai_intro', locale),
+      }
+    ];
+    _quickPrompts = [
+      AppTranslations.getText('prompt_why_this', locale),
+      AppTranslations.getText('prompt_closer', locale),
+      AppTranslations.getText('prompt_lowest_wait', locale),
+    ];
+  }
 
   bool _isTyping = false;
   final ScrollController _scrollController = ScrollController();
@@ -65,6 +74,10 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final langService = Provider.of<LanguageService>(context);
+    final locale = langService.currentLocale;
+    _initializeLocalizations(locale);
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
@@ -100,9 +113,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
                   child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFF00E5CC), size: 22),
                 ),
                 const SizedBox(width: 14),
-                const Text(
-                  "MedAI Assistant",
-                  style: TextStyle(
+                Text(
+                  AppTranslations.getText('med_ai_assistant', locale),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
@@ -127,7 +140,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
               itemCount: _messages.length + (_isTyping ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == _messages.length && _isTyping) {
-                  return _buildTypingIndicator();
+                  return _buildTypingIndicator(locale);
                 }
 
                 final msg = _messages[index];
@@ -217,7 +230,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     );
   }
 
-  Widget _buildTypingIndicator() {
+  Widget _buildTypingIndicator(String locale) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
@@ -245,7 +258,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
             ),
             const SizedBox(width: 12),
             Text(
-              "Thinking...",
+              AppTranslations.getText('ai_thinking', locale),
               style: TextStyle(
                 color: Colors.white.withOpacity(0.5),
                 fontSize: 13,

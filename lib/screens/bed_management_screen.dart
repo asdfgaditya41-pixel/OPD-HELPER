@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/bed_management_viewmodel.dart';
 import '../services/iot_simulator_service.dart';
+import '../services/language_service.dart';
+import '../utils/translations.dart';
 
 class BedManagementScreen extends StatefulWidget {
   final String hospitalId;
@@ -32,9 +34,12 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final langService = Provider.of<LanguageService>(context);
+    final locale = langService.currentLocale;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detailed Bed Management'),
+        title: Text(AppTranslations.getText('bed_mgmt_title', locale)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
@@ -47,19 +52,19 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
               _iotSim.stopAll();
               _simRunning = false;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('🔴 Bed Occupancy B.O. Simulator stopped.'),
-                  backgroundColor: Color(0xFF263238),
+                SnackBar(
+                  content: Text(AppTranslations.getText('sim_stopped', locale)),
+                  backgroundColor: const Color(0xFF263238),
                 ),
               );
             } else {
               _iotSim.startBedSimulation(widget.hospitalId);
               _simRunning = true;
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('🟢 Bed Occupancy B.O. Simulator running — beds flipping every 15s!'),
-                  backgroundColor: Color(0xFF00796B),
-                  duration: Duration(seconds: 3),
+                SnackBar(
+                  content: Text(AppTranslations.getText('sim_running', locale)),
+                  backgroundColor: const Color(0xFF00796B),
+                  duration: const Duration(seconds: 3),
                 ),
               );
             }
@@ -68,7 +73,7 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
         backgroundColor: _simRunning ? Colors.redAccent : const Color(0xFF00BFA5),
         icon: Icon(_simRunning ? Icons.stop_rounded : Icons.sensors_rounded),
         label: Text(
-          _simRunning ? 'Stop B.O. Sim' : 'Run B.O. Sim',
+          _simRunning ? AppTranslations.getText('stop_sim', locale) : AppTranslations.getText('run_sim', locale),
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
       ),
@@ -95,15 +100,15 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
                   children: [
                     const Icon(Icons.meeting_room_rounded, color: Colors.white54, size: 64),
                     const SizedBox(height: 16),
-                    const Text(
-                      'No rooms found.',
-                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    Text(
+                      AppTranslations.getText('no_rooms', locale),
+                      style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
                       onPressed: () => vm.seedInitialRooms(widget.hospitalId),
                       icon: const Icon(Icons.auto_awesome),
-                      label: const Text('Seed Example Rooms'),
+                      label: Text(AppTranslations.getText('seed_rooms', locale)),
                       style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF00BFA5)),
                     )
                   ],
@@ -126,9 +131,9 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _summaryStat('ICU Beds', availICU, totalICU, Colors.redAccent),
+                      _summaryStat(AppTranslations.getText('icu_beds', locale), availICU, totalICU, Colors.redAccent),
                       Container(width: 1, height: 40, color: Colors.white12),
-                      _summaryStat('General', availGen, totalGen, const Color(0xFF00BFA5)),
+                      _summaryStat(AppTranslations.getText('general', locale), availGen, totalGen, const Color(0xFF00BFA5)),
                     ],
                   ),
                 ),
@@ -177,13 +182,13 @@ class _BedManagementScreenState extends State<BedManagementScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(
-                                        "Room ${room.roomNumber} (${room.type})",
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                                      ),
+                                        Text(
+                                          "${AppTranslations.getText('room', locale)} ${room.roomNumber} (${room.type})",
+                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                        ),
                                       const SizedBox(height: 4),
                                       Text(
-                                        "$availableInRoom of ${room.beds.length} Available",
+                                        "$availableInRoom ${AppTranslations.getText('of', locale)} ${room.beds.length} ${AppTranslations.getText('available_text', locale)}",
                                         style: TextStyle(
                                           color: availableInRoom == 0 ? Colors.redAccent : Colors.white70,
                                           fontSize: 13,

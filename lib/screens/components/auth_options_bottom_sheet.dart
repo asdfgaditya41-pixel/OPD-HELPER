@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/auth_viewmodel.dart';
 import '../auth_screen.dart';
+import '../../services/language_service.dart';
+import '../../utils/translations.dart';
 
 class AuthOptionsBottomSheet extends StatelessWidget {
   final VoidCallback onAuthenticated;
@@ -40,6 +42,9 @@ class AuthOptionsBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final langService = Provider.of<LanguageService>(context);
+    final locale = langService.currentLocale;
+
     return Container(
       padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 40),
       decoration: const BoxDecoration(
@@ -58,20 +63,20 @@ class AuthOptionsBottomSheet extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 32),
-          const Text(
-            "Account Required",
-            style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+          Text(
+            AppTranslations.getText('account_required', locale),
+            style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: 0.5),
           ),
           const SizedBox(height: 12),
           Text(
-            "To book an appointment, please verify your identity securely.",
+            AppTranslations.getText('verify_identity_msg', locale),
             style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 14, height: 1.5),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 36),
           // Google Button
           _AuthOptionButton(
-            title: "Continue with Google",
+            title: AppTranslations.getText('continue_google', locale),
             icon: Icons.g_mobiledata_rounded, // Using native icon as fallback for google logo
             color: Colors.white,
             textColor: Colors.black,
@@ -80,7 +85,7 @@ class AuthOptionsBottomSheet extends StatelessWidget {
           const SizedBox(height: 16),
           // Email Button
           _AuthOptionButton(
-            title: "Login / Sign up with Email",
+            title: AppTranslations.getText('login_signup_email', locale),
             icon: Icons.email_outlined,
             color: const Color(0xFF00BFA5).withOpacity(0.15),
             textColor: const Color(0xFF00E5CC),

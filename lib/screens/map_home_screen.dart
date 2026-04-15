@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import '../services/language_service.dart';
+import '../utils/translations.dart';
 import '../models/hospital.dart';
 import '../viewmodels/hospital_viewmodel.dart';
-import 'google_map_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'hospital_detail_screen.dart';
-import 'ai_chat_screen.dart';
+import 'google_map_screen.dart';
 import '../features/skin_checker/skin_checker_screen.dart';
+import 'ai_chat_screen.dart';
+
 class MapHomeScreen extends StatefulWidget {
   const MapHomeScreen({super.key});
 
@@ -56,12 +59,12 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
     if (mounted) setState(() => _isFetchingLocation = false);
   }
 
-  void _handleEmergency(HospitalViewModel vm) {
+  void _handleEmergency(HospitalViewModel vm, String locale) {
     if (vm.hospitals.isEmpty || vm.userLat == null || vm.userLng == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Cannot locate any hospitals at the moment.', style: TextStyle(color: Colors.white)),
-          backgroundColor: Color(0xFF122A34),
+        SnackBar(
+          content: Text(AppTranslations.getText('cannot_locate_hospitals', locale), style: const TextStyle(color: Colors.white)),
+          backgroundColor: const Color(0xFF122A34),
         ),
       );
       return;
@@ -70,24 +73,24 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
     final topHospitals = vm.getTopEmergencyHospitals(count: 3);
     
     if (topHospitals.isNotEmpty) {
-      _showEmergencyDialog(vm, topHospitals);
+      _showEmergencyDialog(vm, topHospitals, locale);
     }
   }
 
-  void _showEmergencyDialog(HospitalViewModel vm, List<Hospital> hospitals) {
+  void _showEmergencyDialog(HospitalViewModel vm, List<Hospital> hospitals, String locale) {
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           backgroundColor: const Color(0xFF122A34),
-          title: const Row(
+          title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 28),
-              SizedBox(width: 12),
+              const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 28),
+              const SizedBox(width: 12),
               Text(
-                "Emergency Options",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: 0.3),
+                AppTranslations.getText('emergency_options', locale),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18, letterSpacing: 0.3),
               ),
             ],
           ),
@@ -95,9 +98,9 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                "Recommended optimal hospitals based on distance, beds, and reliability:",
-                style: TextStyle(color: Colors.white54, fontSize: 13),
+              Text(
+                AppTranslations.getText('optimal_hospitals_desc', locale),
+                style: const TextStyle(color: Colors.white54, fontSize: 13),
               ),
               const SizedBox(height: 16),
               ...hospitals.map((h) {
@@ -133,12 +136,12 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
                               children: [
                                 const Icon(Icons.location_on_rounded, color: Color(0xFF00E5CC), size: 14),
                                 const SizedBox(width: 4),
-                                Text("${distance.toStringAsFixed(1)} km", style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                                Text("${distance.toStringAsFixed(1)} ${AppTranslations.getText('km_label', locale)}", style: const TextStyle(color: Colors.white70, fontSize: 12)),
                                 const SizedBox(width: 10),
                                 const Icon(Icons.bed_rounded, color: Color(0xFF81C784), size: 14),
                                 const SizedBox(width: 4),
                                 Text(
-                                  "${vm.getPredictedBeds(h)} beds",
+                                  "${vm.getPredictedBeds(h)} ${AppTranslations.getText('beds_text', locale)}",
                                   style: TextStyle(
                                     color: confidence == ConfidenceLevel.Low ? Colors.orange : Colors.white70,
                                     fontSize: 12,
@@ -173,7 +176,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Cancel", style: TextStyle(color: Colors.white.withOpacity(0.5))),
+              child: Text(AppTranslations.getText('cancel', locale), style: TextStyle(color: Colors.white.withOpacity(0.5))),
             ),
           ],
         );
@@ -181,9 +184,9 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
     );
   }
 
-  void _showAllHospitalsBottomSheet(HospitalViewModel vm) {
+  void _showAllHospitalsBottomSheet(HospitalViewModel vm, String locale) {
     if (vm.filteredHospitals.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('No hospitals available for selected type.', style: TextStyle(color: Colors.white)), backgroundColor: Color(0xFF122A34)));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppTranslations.getText('no_hospitals_type', locale), style: const TextStyle(color: Colors.white)), backgroundColor: const Color(0xFF122A34)));
       return;
     }
 
@@ -209,11 +212,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
             children: [
               const SizedBox(height: 12),
               Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
-              const Padding(
-                padding: EdgeInsets.all(20),
+              Padding(
+                padding: const EdgeInsets.all(20),
                 child: Text(
-                  "Hospitals Near You",
-                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                  AppTranslations.getText('hospitals_near_you', locale),
+                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: 0.5),
                 ),
               ),
               Expanded(
@@ -266,11 +269,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
                                         children: [
                                           const Icon(Icons.location_on_rounded, color: Color(0xFF00E5CC), size: 14),
                                           const SizedBox(width: 4),
-                                          Text("${dist.toStringAsFixed(1)} km", style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500)),
+                                          Text("${dist.toStringAsFixed(1)} ${AppTranslations.getText('km_label', locale)}", style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500)),
                                           const SizedBox(width: 16),
                                           const Icon(Icons.bed_rounded, color: Color(0xFF81C784), size: 14),
                                           const SizedBox(width: 4),
-                                          Text("${vm.getPredictedBeds(h)} beds", style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500)),
+                                          Text("${vm.getPredictedBeds(h)} ${AppTranslations.getText('beds_text', locale)}", style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13, fontWeight: FontWeight.w500)),
                                         ],
                                       ),
                                     ],
@@ -297,6 +300,8 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
   @override
   Widget build(BuildContext context) {
     final vm = Provider.of<HospitalViewModel>(context);
+    final langService = Provider.of<LanguageService>(context);
+    final locale = langService.currentLocale;
 
     return Scaffold(
       body: Stack(
@@ -304,7 +309,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
           // 1. Full-screen map or loading
           if (!vm.isLoading && !_isLoadingLocation)
             vm.filteredHospitals.isEmpty
-                ? _buildEmptyState()
+                ? _buildEmptyState(locale)
                 : GoogleMapScreen(
                     hospitals: vm.filteredHospitals,
                     userLat: vm.userLat,
@@ -348,7 +353,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
                     ),
                     const SizedBox(height: 20),
                     Text(
-                      "Finding hospitals near you...",
+                      AppTranslations.getText('finding_hospitals', locale),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.6),
                         fontSize: 16,
@@ -395,9 +400,9 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
                         child: const Icon(Icons.location_on_rounded, color: Color(0xFF00E5CC), size: 18),
                       ),
                       const SizedBox(width: 10),
-                      const Text(
-                        "Hospitals Near You",
-                        style: TextStyle(
+                      Text(
+                        AppTranslations.getText('hospitals_near_you', locale),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
@@ -434,11 +439,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        _filterChip(vm, 'All', 'all'),
+                        _filterChip(vm, AppTranslations.getText('all', locale), 'all'),
                         const SizedBox(width: 8),
-                        _filterChip(vm, 'Government', 'government'),
+                        _filterChip(vm, AppTranslations.getText('government', locale), 'government'),
                         const SizedBox(width: 8),
-                        _filterChip(vm, 'Private', 'private'),
+                        _filterChip(vm, AppTranslations.getText('private', locale), 'private'),
                       ],
                     ),
                   ),
@@ -463,11 +468,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
-                        _statItem(Icons.timer_rounded, "Avg Wait", "${vm.avgWaitTime.toStringAsFixed(0)}m", const Color(0xFFFFB74D)),
+                        _statItem(Icons.timer_rounded, AppTranslations.getText('avg_wait', locale), "${vm.avgWaitTime.toStringAsFixed(0)}m", const Color(0xFFFFB74D)),
                         Container(width: 1, height: 36, color: Colors.white.withOpacity(0.08)),
-                        _statItem(Icons.bed_rounded, "Beds", "${vm.totalBeds}", const Color(0xFF81C784)),
+                        _statItem(Icons.bed_rounded, AppTranslations.getText('beds_text', locale), "${vm.totalBeds}", const Color(0xFF81C784)),
                         Container(width: 1, height: 36, color: Colors.white.withOpacity(0.08)),
-                        _statItem(Icons.trending_up_rounded, "Peak", vm.mostCrowded?.name.split(" ")[0] ?? "N/A", const Color(0xFFEF5350)),
+                        _statItem(Icons.trending_up_rounded, AppTranslations.getText('peak', locale), vm.mostCrowded?.name.split(" ")[0] ?? "N/A", const Color(0xFFEF5350)),
                       ],
                     ),
                   ),
@@ -604,7 +609,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
                 heroTag: 'emergency_fab',
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                onPressed: () => _handleEmergency(vm),
+                onPressed: () => _handleEmergency(vm, locale),
                 child: const Icon(Icons.emergency_rounded, color: Colors.white, size: 32),
               ),
             ),
@@ -637,11 +642,11 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 ),
-                onPressed: () => _showAllHospitalsBottomSheet(vm),
+                onPressed: () => _showAllHospitalsBottomSheet(vm, locale),
                 icon: const Icon(Icons.list_rounded, size: 24),
-                label: const Text(
-                  "Show All Hospitals",
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                label: Text(
+                  AppTranslations.getText('show_all_hospitals', locale),
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
                 ),
               ),
             ),
@@ -709,7 +714,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(String locale) {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -740,7 +745,7 @@ class _MapHomeScreenState extends State<MapHomeScreen> with SingleTickerProvider
             ),
             const SizedBox(height: 24),
             Text(
-              "No hospitals found for\nselected category",
+              AppTranslations.getText('no_hospitals_category', locale),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white.withOpacity(0.8),

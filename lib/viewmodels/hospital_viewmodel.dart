@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import '../models/hospital.dart';
 import '../services/firestore_service.dart';
+import '../utils/translations.dart';
 
 enum ConfidenceLevel { High, Medium, Low }
 
@@ -194,13 +195,13 @@ class HospitalViewModel extends ChangeNotifier {
     await _service.reportNoBeds(id);
   }
 
-  String getTimeAgoFormatted(DateTime? lastUpdated) {
-    if (lastUpdated == null) return "Unknown";
+  String getTimeAgoFormatted(DateTime? lastUpdated, String locale) {
+    if (lastUpdated == null) return AppTranslations.getText('unknown', locale);
     final diff = DateTime.now().difference(lastUpdated);
-    if (diff.inMinutes < 1) return "Just now";
-    if (diff.inMinutes < 60) return "${diff.inMinutes} mins ago";
-    if (diff.inHours < 24) return "${diff.inHours} hrs ago";
-    return "${diff.inDays} days ago";
+    if (diff.inMinutes < 1) return AppTranslations.getText('just_now', locale);
+    if (diff.inMinutes < 60) return "${diff.inMinutes} ${AppTranslations.getText('mins_ago', locale)}";
+    if (diff.inHours < 24) return "${diff.inHours} ${AppTranslations.getText('hrs_ago', locale)}";
+    return "${diff.inDays} ${AppTranslations.getText('days_ago', locale)}";
   }
 
   ConfidenceLevel getConfidenceLevel(Hospital h) {
@@ -409,17 +410,19 @@ class HospitalViewModel extends ChangeNotifier {
     return (h.waitTime / (h.doctors * 0.8)).toInt();
   }
 
-  String formatDuration(int minutes) {
-    if (minutes == 0) return "0 min";
+  String formatDuration(int minutes, String locale) {
+    if (minutes == 0) return "0 ${AppTranslations.getText('mins', locale)}";
     final hours = minutes ~/ 60;
     final mins = minutes % 60;
-    return hours > 0 ? "${hours}h ${mins}m" : "${mins}m";
+    final hStr = AppTranslations.getText('h_short', locale);
+    final mStr = AppTranslations.getText('m_short', locale);
+    return hours > 0 ? "${hours}$hStr ${mins}$mStr" : "${mins}$mStr";
   }
 
-  String getBestTimeToVisit(Hospital h) {
-    if (h.waitTime < 30) return "Right now (Low Traffic)";
-    if (h.waitTime < 60) return "Within the next hour";
-    return "After 8:00 PM or Early Morning";
+  String getBestTimeToVisit(Hospital h, String locale) {
+    if (h.waitTime < 30) return AppTranslations.getText('now_low_traffic', locale);
+    if (h.waitTime < 60) return AppTranslations.getText('next_hour', locale);
+    return AppTranslations.getText('evening_or_morning', locale);
   }
 
   Color getLoadColor(int waitTime) {
@@ -428,10 +431,10 @@ class HospitalViewModel extends ChangeNotifier {
     return Colors.redAccent;
   }
 
-  String getLoadText(int waitTime) {
-    if (waitTime < 30) return "Low";
-    if (waitTime < 60) return "Moderate";
-    return "High";
+  String getLoadText(int waitTime, String locale) {
+    if (waitTime < 30) return AppTranslations.getText('low', locale);
+    if (waitTime < 60) return AppTranslations.getText('moderate', locale);
+    return AppTranslations.getText('high', locale);
   }
 
   List<double> generateHistoricalWaitTimes(Hospital h) {

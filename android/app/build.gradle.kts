@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -19,7 +22,7 @@ android {
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_17.toString()
+        jvmTarget = "17"
     }
 
     defaultConfig {
@@ -33,9 +36,9 @@ android {
         versionName = flutter.versionName
 
         val envFile = project.rootProject.file(".env")
-        val properties = java.util.Properties()
+        val properties = Properties()
         if (envFile.exists()) {
-            properties.load(java.io.FileInputStream(envFile))
+            properties.load(FileInputStream(envFile))
         }
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = properties.getProperty("GOOGLE_MAPS_API_KEY") ?: ""
     }

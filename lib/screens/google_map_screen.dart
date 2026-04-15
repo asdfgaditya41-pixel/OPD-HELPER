@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/hospital.dart';
 import 'hospital_detail_screen.dart';
+import 'package:provider/provider.dart';
+import '../services/language_service.dart';
+import '../utils/translations.dart';
 
 class GoogleMapScreen extends StatefulWidget {
   final List<Hospital> hospitals;
@@ -25,6 +28,7 @@ class GoogleMapScreen extends StatefulWidget {
 }
 
 class _GoogleMapScreenState extends State<GoogleMapScreen> {
+  String _locale = 'en';
   final Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
   Set<Marker> _markers = {};
   Hospital? _selectedHospital;
@@ -32,6 +36,7 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
   @override
   void initState() {
     super.initState();
+    _locale = Provider.of<LanguageService>(context, listen: false).currentLocale;
     _initMarkers();
   }
 
@@ -55,7 +60,7 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
           markerId: const MarkerId('user_loc'),
           position: LatLng(widget.userLat!, widget.userLng!),
           icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-          infoWindow: const InfoWindow(title: 'Your Location'),
+          infoWindow: InfoWindow(title: AppTranslations.getText('your_location', _locale)),
         )
       );
     }
@@ -168,13 +173,13 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
           bottom: _selectedHospital != null ? (widget.hideAppBar ? 115 : 20) : -200,
           left: 16,
           right: 16,
-          child: _selectedHospital != null ? _buildInfoCard(_selectedHospital!) : const SizedBox.shrink(),
+          child: _selectedHospital != null ? _buildInfoCard(_selectedHospital!, _locale) : const SizedBox.shrink(),
         ),
       ],
     );
   }
 
-  Widget _buildInfoCard(Hospital hospital) {
+  Widget _buildInfoCard(Hospital hospital, String locale) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
       decoration: BoxDecoration(
@@ -215,11 +220,9 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
           const SizedBox(height: 12),
           Row(
             children: [
-              _buildBadge("Queue", "${hospital.opdQueue}"),
-              const SizedBox(width: 8),
-              _buildBadge("Wait", "${hospital.waitTime}m"),
-              const SizedBox(width: 8),
-              _buildBadge("Beds", "${hospital.bedsAvailable}"),
+              _buildBadge(AppTranslations.getText('wait_label', locale), "${hospital.waitTime} ${AppTranslations.getText('mins_label', locale)}", locale),
+              const SizedBox(width: 10),
+              _buildBadge(AppTranslations.getText('beds_text', locale), "${hospital.bedsAvailable}", locale),
             ],
           ),
           const SizedBox(height: 12),
@@ -240,7 +243,7 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
                   ),
                 );
               },
-              child: const Text("🏥 View Full Details", style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+              child: Text(AppTranslations.getText('view_full_details', locale), style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
             ),
           )
         ],
@@ -248,7 +251,7 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
     );
   }
 
-  Widget _buildBadge(String label, String value) {
+  Widget _buildBadge(String label, String value, String locale) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 8),
@@ -270,13 +273,14 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    _locale = Provider.of<LanguageService>(context).currentLocale;
     if (widget.hideAppBar) {
       return Scaffold(
         body: SafeArea(child: _buildMap()),
       );
     }
     return Scaffold(
-      appBar: AppBar(title: const Text("Google Map")),
+      appBar: AppBar(title: Text(AppTranslations.getText('google_map', _locale))),
       body: _buildMap(),
     );
   }

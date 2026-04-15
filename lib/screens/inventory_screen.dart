@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../models/inventory_item.dart';
 import '../viewmodels/inventory_viewmodel.dart';
+import '../services/language_service.dart';
+import '../utils/translations.dart';
 
 class InventoryScreen extends StatefulWidget {
   final String hospitalId;
@@ -26,9 +27,12 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final langService = Provider.of<LanguageService>(context);
+    final locale = langService.currentLocale;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Inventory Module'),
+        title: Text(AppTranslations.getText('inventory_module', locale)),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -85,9 +89,9 @@ class _InventoryScreenState extends State<InventoryScreen> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    'Low stock detected',
-                                    style: TextStyle(
+                                  Text(
+                                    AppTranslations.getText('low_stock_detected', locale),
+                                    style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 14,
@@ -95,7 +99,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
-                                    'Some medicines are at or below their configured thresholds.',
+                                    AppTranslations.getText('low_stock_msg', locale),
                                     style: TextStyle(
                                       color:
                                           Colors.white.withOpacity(0.7),
@@ -109,7 +113,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                         ),
                       ),
                     Text(
-                      'Inventory',
+                      AppTranslations.getText('inventory_title', locale),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -118,7 +122,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Manage medicines, stock levels and low-stock alerts in real time.',
+                      AppTranslations.getText('inventory_subtitle', locale),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.6),
                         fontSize: 13,
@@ -129,7 +133,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                       child: vm.items.isEmpty
                           ? Center(
                               child: Text(
-                                'No inventory items yet.\nTap the + button to add one.',
+                                AppTranslations.getText('no_inventory_items', locale), // wait, did I add no_inventory_items?
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white.withOpacity(0.6),
@@ -188,7 +192,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                       children: [
                                         const SizedBox(height: 4),
                                         Text(
-                                          'Stock: ${item.stock}   •   Threshold: ${item.threshold}',
+                                          '${AppTranslations.getText('stock', locale)}: ${item.stock}   •   ${AppTranslations.getText('threshold', locale)}: ${item.threshold}',
                                           style: TextStyle(
                                             color: Colors.white
                                                 .withOpacity(0.7),
@@ -197,7 +201,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          'Last updated: ${vm.formatLastUpdated(item.lastUpdated)}',
+                                          '${AppTranslations.getText('last_updated', locale)}: ${vm.formatLastUpdated(item.lastUpdated)}',
                                           style: TextStyle(
                                             color: Colors.white
                                                 .withOpacity(0.5),
@@ -219,6 +223,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                                               context: context,
                                               vm: vm,
                                               existing: item,
+                                              locale: locale,
                                             );
                                           },
                                         ),
@@ -248,10 +253,10 @@ class _InventoryScreenState extends State<InventoryScreen> {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           final vm = Provider.of<InventoryViewModel>(context, listen: false);
-          _showItemFormDialog(context: context, vm: vm);
+          _showItemFormDialog(context: context, vm: vm, locale: locale);
         },
         icon: const Icon(Icons.add_rounded),
-        label: const Text('Add Item'),
+        label: Text(AppTranslations.getText('add_item', locale)),
       ),
     );
   }
@@ -259,6 +264,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
   Future<void> _showItemFormDialog({
     required BuildContext context,
     required InventoryViewModel vm,
+    required String locale,
     InventoryItem? existing,
   }) async {
     final nameController =
@@ -279,7 +285,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             borderRadius: BorderRadius.circular(20),
           ),
           title: Text(
-            existing == null ? 'Add Inventory Item' : 'Edit Inventory Item',
+            existing == null ? AppTranslations.getText('add_item', locale) : AppTranslations.getText('edit_item', locale),
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.w700,
@@ -293,7 +299,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   controller: nameController,
                   style: const TextStyle(color: Colors.white),
                   decoration: InputDecoration(
-                    labelText: 'Medicine / Product Name',
+                    labelText: AppTranslations.getText('med_name', locale),
                     labelStyle:
                         const TextStyle(color: Colors.white70),
                     prefixIcon: const Icon(
@@ -323,7 +329,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   style: const TextStyle(color: Colors.white),
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Current Stock',
+                    labelText: AppTranslations.getText('current_stock', locale),
                     labelStyle:
                         const TextStyle(color: Colors.white70),
                     prefixIcon: const Icon(
@@ -353,7 +359,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
                   style: const TextStyle(color: Colors.white),
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    labelText: 'Low Stock Threshold',
+                    labelText: AppTranslations.getText('low_stock_threshold', locale),
                     labelStyle:
                         const TextStyle(color: Colors.white70),
                     prefixIcon: const Icon(
@@ -384,7 +390,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child: Text(
-                'Cancel',
+                AppTranslations.getText('cancel', locale),
                 style: TextStyle(
                   color: Colors.white.withOpacity(0.7),
                 ),
@@ -399,11 +405,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
                 if (name.isEmpty || stock == null || threshold == null) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
+                    SnackBar(
                       content: Text(
-                        'Please enter valid name, stock and threshold.',
+                        AppTranslations.getText('enter_valid_msg', locale),
                       ),
-                      backgroundColor: Color(0xFF122A34),
+                      backgroundColor: const Color(0xFF122A34),
                     ),
                   );
                   return;
@@ -426,7 +432,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
                 if (mounted) Navigator.pop(context);
               },
-              child: const Text('Save'),
+              child: Text(AppTranslations.getText('save', locale)),
             ),
           ],
         );

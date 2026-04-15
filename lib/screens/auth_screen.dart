@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../viewmodels/auth_viewmodel.dart';
+import '../services/language_service.dart';
+import '../utils/translations.dart';
 
 class AuthScreen extends StatefulWidget {
   final VoidCallback onAuthenticated;
@@ -61,6 +63,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final langService = Provider.of<LanguageService>(context);
+    final locale = langService.currentLocale;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0A1A20),
       appBar: AppBar(
@@ -68,7 +73,10 @@ class _AuthScreenState extends State<AuthScreen> {
           icon: const Icon(Icons.arrow_back_rounded, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(_isLoginMode ? "Login" : "Sign Up", style: const TextStyle(color: Colors.white)),
+        title: Text(
+          _isLoginMode ? AppTranslations.getText('login', locale) : AppTranslations.getText('signup', locale),
+          style: const TextStyle(color: Colors.white),
+        ),
       ),
       body: SafeArea(
         child: Center(
@@ -89,14 +97,14 @@ class _AuthScreenState extends State<AuthScreen> {
                     child: const Icon(Icons.security_rounded, color: Color(0xFF00E5CC), size: 48),
                   ),
                   const SizedBox(height: 32),
-                  const Text(
-                    "Welcome",
-                    style: TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+                  Text(
+                    AppTranslations.getText('welcome_back', locale), // wait, checking if I have 'welcome_back' or just 'welcome'
+                    style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w800, letterSpacing: 0.5),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    _isLoginMode ? "Sign in to book appointments" : "Create an account to continue",
+                    _isLoginMode ? AppTranslations.getText('signin_to_book', locale) : AppTranslations.getText('create_account_msg', locale),
                     style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 16),
                     textAlign: TextAlign.center,
                   ),
@@ -105,21 +113,21 @@ class _AuthScreenState extends State<AuthScreen> {
                   if (!_isLoginMode) ...[
                     _buildTextField(
                       controller: _nameController,
-                      label: "Full Name",
+                      label: AppTranslations.getText('full_name', locale),
                       icon: Icons.person_outline_rounded,
-                      validator: (val) => val == null || val.isEmpty ? "Please enter your name" : null,
+                      validator: (val) => val == null || val.isEmpty ? AppTranslations.getText('enter_name_error', locale) : null,
                     ),
                     const SizedBox(height: 16),
                   ],
 
                   _buildTextField(
                     controller: _emailController,
-                    label: "Email Address",
+                    label: AppTranslations.getText('email_address', locale),
                     icon: Icons.email_outlined,
                     keyboardType: TextInputType.emailAddress,
                     validator: (val) {
-                      if (val == null || val.isEmpty) return "Please enter your email";
-                      if (!val.contains('@')) return "Please enter a valid email";
+                      if (val == null || val.isEmpty) return AppTranslations.getText('enter_email_error', locale);
+                      if (!val.contains('@')) return AppTranslations.getText('valid_email_error', locale);
                       return null;
                     },
                   ),
@@ -127,7 +135,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                   _buildTextField(
                     controller: _passwordController,
-                    label: "Password",
+                    label: AppTranslations.getText('password_label', locale),
                     icon: Icons.lock_outline_rounded,
                     obscureText: _obscurePassword,
                     suffixIcon: IconButton(
@@ -135,8 +143,8 @@ class _AuthScreenState extends State<AuthScreen> {
                       onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                     validator: (val) {
-                      if (val == null || val.isEmpty) return "Please enter your password";
-                      if (!_isLoginMode && val.length < 6) return "Password must be at least 6 characters";
+                      if (val == null || val.isEmpty) return AppTranslations.getText('enter_password_error', locale);
+                      if (!_isLoginMode && val.length < 6) return AppTranslations.getText('password_length_error', locale);
                       return null;
                     },
                   ),
@@ -161,7 +169,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       onPressed: _isLoading ? null : _submit,
                       child: _isLoading
                           ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2.5))
-                          : Text(_isLoginMode ? "Login" : "Sign Up", style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
+                          : Text(_isLoginMode ? AppTranslations.getText('login', locale) : AppTranslations.getText('signup', locale), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 18)),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -173,11 +181,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     }),
                     child: RichText(
                       text: TextSpan(
-                        text: _isLoginMode ? "Don't have an account? " : "Already have an account? ",
+                        text: _isLoginMode ? AppTranslations.getText('dont_have_account', locale) : AppTranslations.getText('already_have_account', locale),
                         style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 14),
                         children: [
                           TextSpan(
-                            text: _isLoginMode ? "Sign Up" : "Login",
+                            text: _isLoginMode ? AppTranslations.getText('signup', locale) : AppTranslations.getText('login', locale),
                             style: const TextStyle(color: Color(0xFF00E5CC), fontWeight: FontWeight.w700),
                           ),
                         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import '../services/language_service.dart';
+import '../utils/translations.dart';
 import '../models/hospital.dart';
 import '../services/firestore_service.dart';
 import '../viewmodels/hospital_viewmodel.dart';
@@ -17,10 +18,12 @@ class HospitalDashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hospitalVm = Provider.of<HospitalViewModel>(context, listen: false);
+    final langService = Provider.of<LanguageService>(context);
+    final locale = langService.currentLocale;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Hospital Dashboard'),
+        title: Text(AppTranslations.getText('hospital_dashboard', locale)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => Navigator.pop(context),
@@ -40,7 +43,7 @@ class HospitalDashboardScreen extends StatelessWidget {
             if (snapshot.hasError) {
               return Center(
                 child: Text(
-                  'Error loading hospital',
+                  AppTranslations.getText('error_loading_hospital', locale),
                   style: TextStyle(color: Colors.redAccent.withOpacity(0.9)),
                 ),
               );
@@ -54,9 +57,10 @@ class HospitalDashboardScreen extends StatelessWidget {
 
             final hospital = snapshot.data!;
             final loadColor = hospitalVm.getLoadColor(hospital.waitTime);
-            final loadText = hospitalVm.getLoadText(hospital.waitTime);
+            final loadText = hospitalVm.getLoadText(hospital.waitTime, locale);
             final lastUpdated = hospitalVm.getTimeAgoFormatted(
               hospital.lastUpdated,
+              locale,
             );
 
             return SafeArea(
@@ -80,7 +84,7 @@ class HospitalDashboardScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Last updated: $lastUpdated',
+                        '${AppTranslations.getText('last_updated', locale)}: $lastUpdated',
                         style: TextStyle(
                           color: Colors.white.withOpacity(0.6),
                           fontSize: 12,
@@ -92,11 +96,11 @@ class HospitalDashboardScreen extends StatelessWidget {
                           Expanded(
                             child: _metricCard(
                               icon: Icons.people_alt_rounded,
-                              label: 'Current Queue',
-                              value: '${hospital.opdQueue} patients',
+                              label: AppTranslations.getText('current_queue', locale),
+                              value: '${hospital.opdQueue} ${AppTranslations.getText('patients', locale)}',
                               color: const Color(0xFF64B5F6),
                               extra: hospital.emergencyQueue > 0
-                                  ? 'Emergency: ${hospital.emergencyQueue}'
+                                  ? '${AppTranslations.getText('emergency', locale)}: ${hospital.emergencyQueue}'
                                   : null,
                             ),
                           ),
@@ -104,8 +108,8 @@ class HospitalDashboardScreen extends StatelessWidget {
                           Expanded(
                             child: _metricCard(
                               icon: Icons.timer_rounded,
-                              label: 'Est. Wait Time',
-                              value: '${hospital.waitTime} mins',
+                              label: AppTranslations.getText('est_wait_time', locale),
+                              value: '${hospital.waitTime} ${AppTranslations.getText('mins', locale)}',
                               color: const Color(0xFFFFB74D),
                             ),
                           ),
@@ -117,19 +121,18 @@ class HospitalDashboardScreen extends StatelessWidget {
                           Expanded(
                             child: _metricCard(
                               icon: Icons.bed_rounded,
-                              label: 'Beds Available',
+                              label: AppTranslations.getText('beds_available', locale),
                               value: hospital.bedsAvailable.toString(),
                               color: const Color(0xFF81C784),
                               extra: hospital.bedsTotal > 0
-                                  ? 'Total: ${hospital.bedsTotal}'
+                                  ? '${AppTranslations.getText('total', locale)}: ${hospital.bedsTotal}'
                                   : null,
                             ),
                           ),
-                          const SizedBox(width: 12),
                           Expanded(
                             child: _metricCard(
                               icon: Icons.insights_rounded,
-                              label: 'Load Index',
+                              label: AppTranslations.getText('load_index', locale),
                               value:
                                   '${(hospital.loadIndex * 100).toStringAsFixed(0)}%',
                               color: loadColor,
@@ -139,9 +142,9 @@ class HospitalDashboardScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 24),
-                      const Text(
-                        'Hospital Management Tools',
-                        style: TextStyle(
+                      Text(
+                        AppTranslations.getText('hospital_mgmt_tools', locale),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -151,18 +154,18 @@ class HospitalDashboardScreen extends StatelessWidget {
                       _toolTile(
                         context: context,
                         icon: Icons.playlist_add_check_rounded,
-                        title: 'Patient Queue Manager',
-                        subtitle: 'Add, remove, or flag emergencies',
+                        title: AppTranslations.getText('patient_queue_manager', locale),
+                        subtitle: AppTranslations.getText('queue_manager_subtitle', locale),
                         color: const Color(0xFF00E5CC),
                         onTap: () {
-                          _showQueueManager(context, hospital);
+                          _showQueueManager(context, hospital, locale);
                         },
                       ),
                       _toolTile(
                         context: context,
                         icon: Icons.bedroom_child_rounded,
-                        title: 'Bed Tracking Module',
-                        subtitle: 'Toggle live bed availability by room',
+                        title: AppTranslations.getText('bed_tracking_module', locale),
+                        subtitle: AppTranslations.getText('bed_tracking_subtitle', locale),
                         color: const Color(0xFF66BB6A),
                         onTap: () {
                           Navigator.push(
@@ -176,8 +179,8 @@ class HospitalDashboardScreen extends StatelessWidget {
                       _toolTile(
                         context: context,
                         icon: Icons.medication_rounded,
-                        title: 'Inventory Module',
-                        subtitle: 'Track medicines, automated low-stock alerts',
+                        title: AppTranslations.getText('inventory_module', locale),
+                        subtitle: AppTranslations.getText('inventory_subtitle', locale),
                         color: const Color(0xFFFFA726),
                         onTap: () {
                           final inventoryVm = Provider.of<InventoryViewModel>(
@@ -198,8 +201,8 @@ class HospitalDashboardScreen extends StatelessWidget {
                       _toolTile(
                         context: context,
                         icon: Icons.analytics_rounded,
-                        title: 'Analytics Dashboard',
-                        subtitle: 'Peak hours and OPD demand trends',
+                        title: AppTranslations.getText('analytics_dashboard', locale),
+                        subtitle: AppTranslations.getText('analytics_subtitle', locale),
                         color: const Color(0xFFAB47BC),
                         onTap: () {
                           Navigator.push(
@@ -348,9 +351,7 @@ class HospitalDashboardScreen extends StatelessWidget {
     );
   }
 
-
-
-  void _showQueueManager(BuildContext context, Hospital hospital) {
+  void _showQueueManager(BuildContext context, Hospital hospital, String locale) {
     final service = FirestoreService();
     int opd = hospital.opdQueue;
     int emergency = hospital.emergencyQueue;
@@ -392,9 +393,9 @@ class HospitalDashboardScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Text(
-                        'Patient Queue Manager',
-                        style: TextStyle(
+                      Text(
+                        AppTranslations.getText('patient_queue_manager', locale),
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
                           fontWeight: FontWeight.w700,
@@ -404,7 +405,7 @@ class HospitalDashboardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   _counterRow(
-                    label: 'OPD queue',
+                    label: AppTranslations.getText('opd_queue_label', locale),
                     value: opd,
                     onChanged: (v) {
                       setState(() {
@@ -414,7 +415,7 @@ class HospitalDashboardScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   _counterRow(
-                    label: 'Emergency queue',
+                    label: AppTranslations.getText('emergency_queue_label', locale),
                     value: emergency,
                     onChanged: (v) {
                       setState(() {
@@ -431,11 +432,11 @@ class HospitalDashboardScreen extends StatelessWidget {
                           : () async {
                               if (opd < 0 || emergency < 0) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
+                                  SnackBar(
                                     content: Text(
-                                      'Queue counts cannot be negative.',
+                                      AppTranslations.getText('negative_queue_error', locale),
                                     ),
-                                    backgroundColor: Color(0xFF122A34),
+                                    backgroundColor: const Color(0xFF122A34),
                                   ),
                                 );
                                 return;
@@ -452,9 +453,9 @@ class HospitalDashboardScreen extends StatelessWidget {
                                 if (context.mounted) {
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Queue updated.'),
-                                      backgroundColor: Color(0xFF122A34),
+                                    SnackBar(
+                                      content: Text(AppTranslations.getText('queue_updated', locale)),
+                                      backgroundColor: const Color(0xFF122A34),
                                     ),
                                   );
                                 }
@@ -464,15 +465,15 @@ class HospitalDashboardScreen extends StatelessWidget {
                                 });
                                 if (context.mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Failed to update queue.'),
-                                      backgroundColor: Color(0xFF122A34),
+                                    SnackBar(
+                                      content: Text(AppTranslations.getText('queue_update_failed', locale)),
+                                      backgroundColor: const Color(0xFF122A34),
                                     ),
                                   );
                                 }
                               }
                             },
-                      child: Text(isSaving ? 'Saving...' : 'Save'),
+                      child: Text(isSaving ? AppTranslations.getText('saving', locale) : AppTranslations.getText('save', locale)),
                     ),
                   ),
                 ],
