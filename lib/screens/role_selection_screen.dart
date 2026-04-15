@@ -2,10 +2,39 @@ import 'package:flutter/material.dart';
 
 import 'hospital_selection_screen.dart';
 import 'map_home_screen.dart';
-class RoleSelectionScreen extends StatelessWidget {
+class RoleSelectionScreen extends StatefulWidget {
   const RoleSelectionScreen({super.key});
 
+  @override
+  State<RoleSelectionScreen> createState() => _RoleSelectionScreenState();
+}
+
+class _RoleSelectionScreenState extends State<RoleSelectionScreen> {
   static const String defaultHospitalId = 'lokpriya_hospital';
+  bool isHindi = false;
+
+  final Map<String, Map<String, String>> localizedStrings = {
+    'en': {
+      'welcome': 'Welcome to City Pulse',
+      'subtitle': 'Choose how you want to use the app.',
+      'civilian_title': 'I am a Civilian',
+      'civilian_desc': 'Find nearby hospitals, beds and wait times.',
+      'hospital_title': 'I am a Hospital',
+      'hospital_desc': 'Manage queues, beds and medicine inventory.',
+    },
+    'hi': {
+      'welcome': 'सिटी पल्स में आपका स्वागत है',
+      'subtitle': 'चुनें कि आप ऐप का उपयोग कैसे करना चाहते हैं।',
+      'civilian_title': 'मैं एक नागरिक हूँ',
+      'civilian_desc': 'आस-पास के अस्पताल, बिस्तर और प्रतीक्षा समय खोजें।',
+      'hospital_title': 'मैं एक अस्पताल हूँ',
+      'hospital_desc': 'कतारों, बिस्तरों और दवा सूची का प्रबंधन करें।',
+    },
+  };
+
+  String t(String key) {
+    return localizedStrings[isHindi ? 'hi' : 'en']![key]!;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -20,21 +49,51 @@ class RoleSelectionScreen extends StatelessWidget {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Image.asset(
-                    'assets/images/logo.png',
-                    height: 100,
-                    errorBuilder: (context, error, stackTrace) => const SizedBox(height: 100),
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const SizedBox(width: 48), // Spacer for balance
+                    Center(
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        height: 80,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const SizedBox(height: 80),
+                      ),
+                    ),
+                    PopupMenuButton<bool>(
+                      icon: const Icon(Icons.language_rounded,
+                          color: Color(0xFF00E5CC)),
+                      onSelected: (bool value) {
+                        setState(() {
+                          isHindi = value;
+                        });
+                      },
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          value: false,
+                          child: Text('English',
+                              style: TextStyle(
+                                  color: !isHindi ? const Color(0xFF00E5CC) : Colors.white)),
+                        ),
+                        PopupMenuItem(
+                          value: true,
+                          child: Text('हिंदी',
+                              style: TextStyle(
+                                  color: isHindi ? const Color(0xFF00E5CC) : Colors.white)),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Welcome to City Pulse',
-                  style: TextStyle(
+                const SizedBox(height: 32),
+                Text(
+                  t('welcome'),
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 26,
                     fontWeight: FontWeight.w800,
@@ -43,7 +102,7 @@ class RoleSelectionScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Choose how you want to use the app.',
+                  t('subtitle'),
                   style: TextStyle(
                     color: Colors.white.withOpacity(0.6),
                     fontSize: 14,
@@ -53,8 +112,8 @@ class RoleSelectionScreen extends StatelessWidget {
                 _buildRoleCard(
                   context: context,
                   icon: Icons.location_on_rounded,
-                  title: 'I am a Civilian',
-                  subtitle: 'Find nearby hospitals, beds and wait times.',
+                  title: t('civilian_title'),
+                  subtitle: t('civilian_desc'),
                   color: const Color(0xFF00E5CC),
                   onTap: () {
                     Navigator.push(
@@ -67,8 +126,8 @@ class RoleSelectionScreen extends StatelessWidget {
                 _buildRoleCard(
                   context: context,
                   icon: Icons.local_hospital_rounded,
-                  title: 'I am a Hospital',
-                  subtitle: 'Manage queues, beds and medicine inventory.',
+                  title: t('hospital_title'),
+                  subtitle: t('hospital_desc'),
                   color: const Color(0xFFFFB74D),
                   onTap: () {
                     Navigator.push(
