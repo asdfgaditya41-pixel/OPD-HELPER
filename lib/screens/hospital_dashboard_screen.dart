@@ -153,7 +153,7 @@ class HospitalDashboardScreen extends StatelessWidget {
                         icon: Icons.playlist_add_check_rounded,
                         title: 'Patient Queue Manager',
                         subtitle: 'Add, remove, or flag emergencies',
-                        color: const Color(0xFF42A5F5),
+                        color: const Color(0xFF00E5CC),
                         onTap: () {
                           _showQueueManager(context, hospital);
                         },
@@ -383,12 +383,12 @@ class HospitalDashboardScreen extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF42A5F5).withOpacity(0.16),
+                          color: const Color(0xFF00E5CC).withOpacity(0.16),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: const Icon(
                           Icons.playlist_add_check_rounded,
-                          color: Color(0xFF42A5F5),
+                          color: Color(0xFF00E5CC),
                         ),
                       ),
                       const SizedBox(width: 12),
