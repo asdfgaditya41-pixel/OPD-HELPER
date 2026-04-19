@@ -8,17 +8,13 @@ import GoogleMaps
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    if let envPath = Bundle.main.path(forResource: "flutter_assets/.env", ofType: nil) {
-      if let envStr = try? String(contentsOfFile: envPath) {
-        for line in envStr.components(separatedBy: .newlines) {
-          let parts = line.components(separatedBy: "=")
-          if parts.count >= 2 && parts[0].trimmingCharacters(in: .whitespaces) == "GOOGLE_MAPS_API_KEY" {
-            let key = parts.dropFirst().joined(separator: "=").trimmingCharacters(in: .whitespaces)
-            GMSServices.provideAPIKey(key)
-          }
-        }
-      }
-    }
+    // IMPORTANT: provideAPIKey must be called before any other Google Maps usage.
+    // Hardcoded here because the .env asset-parsing approach can silently fail
+    // (e.g. wrong bundle path on newer iOS) and the resulting nil key causes
+    // the native GMSServices to crash with an uncaught exception when the
+    // GoogleMap widget renders.
+    GMSServices.setMetalRendererEnabled(true) // Better stability on iOS 26+ simulator
+    GMSServices.provideAPIKey("AIzaSyBY1Gj_ddLcfJEa1k1b9BgzyBQDBLRB5cg")
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   }
 

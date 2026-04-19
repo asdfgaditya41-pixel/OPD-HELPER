@@ -56,6 +56,7 @@ class HospitalViewModel extends ChangeNotifier {
   // BEFORE: each changeCity() call added a new listener but never cancelled the old one
   //   → memory leak: multiple active listeners accumulating over time
   StreamSubscription<List<Hospital>>? _hospitalsSubscription;
+  Timer? _debounceTimer; // Prevents rapid-fire Firestore callbacks from crashing the native map
 
   // Singleton service — no repeated instantiation
   final FirestoreService _service = FirestoreService();
@@ -78,17 +79,24 @@ class HospitalViewModel extends ChangeNotifier {
   void loadHospitals() {
     // Cancel old subscription to prevent memory leak + stale data
     _hospitalsSubscription?.cancel();
+    _debounceTimer?.cancel();
 
     _hospitalsSubscription = _service
         .getAllHospitals()
         .listen((incoming) {
-      debugPrint("🏥 Firestore returned ${incoming.length} hospitals");
-      _allHospitals = incoming;
-      _applyRadiusFilter();
-      isLoading = false;
-      _recomputeCache();
-      debugPrint("🏥 After filter: ${hospitals.length} hospitals (userLat=$userLat, userLng=$userLng)");
-      notifyListeners();
+      // Debounce rapid Firestore emissions (cache replay + network) to
+      // prevent waterfall notifyListeners() calls that crash the Google
+      // Maps native controller on iOS.
+      _debounceTimer?.cancel();
+      _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+        debugPrint("🏥 Firestore returned ${incoming.length} hospitals");
+        _allHospitals = incoming;
+        _applyRadiusFilter();
+        isLoading = false;
+        _recomputeCache();
+        debugPrint("🏥 After filter: ${hospitals.length} hospitals (userLat=$userLat, userLng=$userLng)");
+        notifyListeners();
+      });
     });
   }
 
@@ -449,6 +457,7 @@ class HospitalViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _hospitalsSubscription?.cancel();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 }

@@ -32,6 +32,13 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
   final Completer<GoogleMapController> _controller = Completer<GoogleMapController>();
   Set<Marker> _markers = {};
   Hospital? _selectedHospital;
+  bool _isDisposed = false;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -99,13 +106,20 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
   }
 
   Future<void> _moveCameraTo(LatLng target) async {
-    final GoogleMapController controller = await _controller.future;
-    controller.animateCamera(CameraUpdate.newCameraPosition(
-      CameraPosition(target: target, zoom: 14)
-    ));
+    if (_isDisposed || !mounted) return;
+    try {
+      final GoogleMapController controller = await _controller.future;
+      if (_isDisposed || !mounted) return;
+      controller.animateCamera(CameraUpdate.newCameraPosition(
+        CameraPosition(target: target, zoom: 14)
+      ));
+    } catch (e) {
+      debugPrint('_moveCameraTo error: $e');
+    }
   }
 
   Future<void> _fitBounds() async {
+    if (_isDisposed || !mounted) return;
     if (widget.hospitals.isEmpty && widget.userLat == null) return;
     
     double minLat = 90.0;
@@ -118,7 +132,7 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
       maxLat = widget.userLat!;
       minLng = widget.userLng!;
       maxLng = widget.userLng!;
-    } else {
+    } else if (widget.hospitals.isNotEmpty) {
       minLat = widget.hospitals[0].lat;
       maxLat = widget.hospitals[0].lat;
       minLng = widget.hospitals[0].lng;
@@ -132,15 +146,32 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
       if (h.lng > maxLng) maxLng = h.lng;
     }
 
+    // Guard against degenerate (zero-area) bounds — causes a native iOS crash
+    // in the Google Maps SDK when southwest == northeast.
+    const double minDelta = 0.01; // ~1km padding
+    if ((maxLat - minLat).abs() < minDelta) {
+      minLat -= minDelta;
+      maxLat += minDelta;
+    }
+    if ((maxLng - minLng).abs() < minDelta) {
+      minLng -= minDelta;
+      maxLng += minDelta;
+    }
+
     final bounds = LatLngBounds(
       southwest: LatLng(minLat, minLng),
       northeast: LatLng(maxLat, maxLng),
     );
 
-    final GoogleMapController controller = await _controller.future;
-    // adding a small delay so layout is complete
-    await Future.delayed(const Duration(milliseconds: 200));
-    controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+    try {
+      final GoogleMapController controller = await _controller.future;
+      // adding a small delay so layout is complete
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (_isDisposed || !mounted) return;
+      controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+    } catch (e) {
+      debugPrint('_fitBounds animateCamera error: $e');
+    }
   }
 
   Widget _buildMap() {
@@ -162,7 +193,7 @@ class _GoogleMapScreenState extends State<GoogleMapScreen> {
               _selectedHospital = null;
             });
           },
-          myLocationEnabled: true,
+          myLocationEnabled: false,
           myLocationButtonEnabled: false,
         ),
         
